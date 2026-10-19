@@ -108,18 +108,31 @@ class AgentDaemon:
 
             if method == "task.assign":
                 asyncio.create_task(self.handle_task(params, msg_id))
+            elif method == "agent.config_update":
+                new_engine = params.get("engine")
+                new_model = params.get("model")
+                if new_engine: self.engine_name = new_engine
+                if new_model: self.model = new_model
+                self.engine = get_engine(self.engine_name, self.model)
+                logger.info(f"Active engine/model switched to: {self.engine_name} ({self.model})")
 
     async def handle_task(self, params: dict, msg_id):
         task_id = params.get("task_id")
         title = params.get("title", "")
         description = params.get("description", "")
-        logger.info(f"Received Task {task_id}: {title}")
+        
+        # Allow task-level engine and model override
+        task_engine_name = params.get("engine") or self.engine_name
+        task_model = params.get("model") or self.model
+        active_engine = get_engine(task_engine_name, task_model)
+        
+        logger.info(f"Received Task {task_id}: {title} | Engine: {task_engine_name} | Model: {task_model}")
 
         self.is_busy = True
         self.current_task_id = task_id
 
         # Notify progress: task accepted
-        await self.send_progress(task_id, f"Accepted task: {title}. Formulating prompt...")
+        await self.send_progress(task_id, f"Accepted task: {title} via [{task_engine_name}:{task_model}]")
 
         prompt = f"""You are the {self.role.upper()} agent for the Ánh Dương Building ERP project.
 Task ID: {task_id}
@@ -130,16 +143,16 @@ Please analyze the requirements and complete the assigned task. Output clear, pr
 """
         try:
             # Notify progress: executing model
-            await self.send_progress(task_id, f"Executing AI Engine ({self.engine_name} - {self.model})...")
+            await self.send_progress(task_id, f"Executing {task_engine_name} with {task_model}...")
             
             # Run engine in thread pool to not block asyncio event loop
             loop = asyncio.get_running_loop()
-            output = await loop.run_in_executor(None, self.engine.execute, prompt)
+            output = await loop.run_in_executor(None, active_engine.execute, prompt)
             
             # Send completion
-            summary = output[:200] + "..." if len(output) > 200 else output
+            summary = output[:300] + "..." if len(output) > 300 else output
             await self.send_complete(task_id, summary)
-            logger.info(f"Task {task_id} completed successfully!")
+            logger.info(f"Task {task_id} completed successfully via {task_engine_name}!")
             
         except Exception as e:
             logger.error(f"Task {task_id} execution error: {e}")

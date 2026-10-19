@@ -52,11 +52,11 @@
 ```
 Component        Status      Notes
 ─────────────    ──────      ─────
-Hub Server       Not started  FastAPI + WebSocket
-Agent Daemon     Not started  Python, runs on each PC
-Dashboard        Not started  React
-Gitea            Not started  Needs Docker on server
-PostgreSQL       Not started  Needs Docker on server
-ERP Backend      Not started  Depends on Hub + DB
-ERP Frontend     Not started  Depends on ERP Backend
+Hub Server       LIVE ✅     FastAPI + WebSocket on http://192.168.1.50:8000
+Web Dashboard    LIVE ✅     Single-page app on http://192.168.1.50:8000
+PostgreSQL DB    LIVE ✅     Database 'agentforge' created on 192.168.1.50:5432
+Agent Daemon     READY ✅    agent_daemon.py + run_agent.bat in agentforge/agent/
+Gitea            Pending     Next step
+ERP Backend      Pending     First task to be dispatched
+ERP Frontend     Pending     Follows ERP Backend
 ```

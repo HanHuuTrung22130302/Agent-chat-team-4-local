@@ -21,8 +21,9 @@ class AgentInfo(BaseModel):
     role: str                       # lead, ba, developer, tester
     hostname: str = "unknown"
     ip: str = "unknown"
-    engine: str = "opencode"        # opencode | antigravity
-    model: str = "free"
+    engine: str = "opencode"        # current default engine: opencode | antigravity
+    model: str = "free"             # current default model
+    supported_engines: List[str] = Field(default_factory=lambda: ["opencode", "antigravity"])
     status: str = "idle"            # idle | busy | offline
     current_task_id: Optional[str] = None
     connected_at: Optional[str] = None
@@ -35,6 +36,8 @@ class TaskItem(BaseModel):
     description: str = ""
     assigned_role: str              # lead, ba, developer, tester
     assigned_agent_id: Optional[str] = None
+    engine: Optional[str] = None    # override engine for this task: opencode | antigravity
+    model: Optional[str] = None     # override model for this task
     status: str = "pending"         # pending | in_progress | review | done | failed
     priority: str = "medium"        # low | medium | high | critical
     branch: Optional[str] = None

@@ -22,7 +22,7 @@
       </div>
       <div>
         <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          AgentForge <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Distributed v1.0</span>
+          AgentForge <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Distributed v1.1</span>
         </h1>
         <p class="text-xs text-slate-400">Target Product: <span class="text-slate-300 font-medium">Ánh Dương Building (ADB) ERP</span></p>
       </div>
@@ -49,7 +49,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <i class="fa-solid fa-network-wired text-indigo-400"></i> Active Engineering Squad (4 Nodes)
+            <i class="fa-solid fa-network-wired text-indigo-400"></i> Active Engineering Squad (All nodes support OpenCode & Antigravity)
           </h2>
           <span id="agent-count" class="text-xs text-slate-400">0 connected</span>
         </div>
@@ -69,11 +69,14 @@
               </div>
               <span id="status-lead" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Offline</span>
             </div>
-            <div class="space-y-1.5 text-xs text-slate-400">
-              <div class="flex justify-between"><span>Model:</span> <span id="model-lead" class="text-slate-200 mono">DeepSeek / Opus</span></div>
-              <div class="flex justify-between"><span>Engine:</span> <span id="engine-lead" class="text-slate-200">OpenCode</span></div>
-              <div class="flex justify-between"><span>Task:</span> <span id="task-lead" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
+            <div class="space-y-1.5 text-xs text-slate-400 mb-3">
+              <div class="flex justify-between"><span>Active IDE:</span> <span id="engine-lead" class="text-slate-200 font-medium">OpenCode</span></div>
+              <div class="flex justify-between"><span>Model:</span> <span id="model-lead" class="text-slate-200 mono truncate max-w-[140px]">deepseek-v4.1-free</span></div>
+              <div class="flex justify-between"><span>Current Task:</span> <span id="task-lead" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
             </div>
+            <button onclick="openAgentConfigModal('lead')" class="w-full py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[11px] text-slate-300 font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Configure IDE & Model
+            </button>
           </div>
 
           <!-- BA Card -->
@@ -90,11 +93,14 @@
               </div>
               <span id="status-ba" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Offline</span>
             </div>
-            <div class="space-y-1.5 text-xs text-slate-400">
-              <div class="flex justify-between"><span>Model:</span> <span id="model-ba" class="text-slate-200 mono">Gemini Pro</span></div>
-              <div class="flex justify-between"><span>Engine:</span> <span id="engine-ba" class="text-slate-200">Antigravity</span></div>
-              <div class="flex justify-between"><span>Task:</span> <span id="task-ba" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
+            <div class="space-y-1.5 text-xs text-slate-400 mb-3">
+              <div class="flex justify-between"><span>Active IDE:</span> <span id="engine-ba" class="text-slate-200 font-medium">Antigravity</span></div>
+              <div class="flex justify-between"><span>Model:</span> <span id="model-ba" class="text-slate-200 mono truncate max-w-[140px]">gemini-3.8-flash</span></div>
+              <div class="flex justify-between"><span>Current Task:</span> <span id="task-ba" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
             </div>
+            <button onclick="openAgentConfigModal('ba')" class="w-full py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[11px] text-slate-300 font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Configure IDE & Model
+            </button>
           </div>
 
           <!-- Dev Card -->
@@ -111,11 +117,14 @@
               </div>
               <span id="status-developer" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Offline</span>
             </div>
-            <div class="space-y-1.5 text-xs text-slate-400">
-              <div class="flex justify-between"><span>Model:</span> <span id="model-developer" class="text-slate-200 mono">DeepSeek v4.1 (Free)</span></div>
-              <div class="flex justify-between"><span>Engine:</span> <span id="engine-developer" class="text-slate-200">OpenCode / Antigravity</span></div>
-              <div class="flex justify-between"><span>Task:</span> <span id="task-developer" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
+            <div class="space-y-1.5 text-xs text-slate-400 mb-3">
+              <div class="flex justify-between"><span>Active IDE:</span> <span id="engine-developer" class="text-slate-200 font-medium">OpenCode</span></div>
+              <div class="flex justify-between"><span>Model:</span> <span id="model-developer" class="text-slate-200 mono truncate max-w-[140px]">deepseek-v4.1-free</span></div>
+              <div class="flex justify-between"><span>Current Task:</span> <span id="task-developer" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
             </div>
+            <button onclick="openAgentConfigModal('developer')" class="w-full py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[11px] text-slate-300 font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Configure IDE & Model
+            </button>
           </div>
 
           <!-- Tester Card -->
@@ -132,11 +141,14 @@
               </div>
               <span id="status-tester" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Offline</span>
             </div>
-            <div class="space-y-1.5 text-xs text-slate-400">
-              <div class="flex justify-between"><span>Model:</span> <span id="model-tester" class="text-slate-200 mono">Mimo / Free</span></div>
-              <div class="flex justify-between"><span>Engine:</span> <span id="engine-tester" class="text-slate-200">OpenCode / Pytest</span></div>
-              <div class="flex justify-between"><span>Task:</span> <span id="task-tester" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
+            <div class="space-y-1.5 text-xs text-slate-400 mb-3">
+              <div class="flex justify-between"><span>Active IDE:</span> <span id="engine-tester" class="text-slate-200 font-medium">OpenCode</span></div>
+              <div class="flex justify-between"><span>Model:</span> <span id="model-tester" class="text-slate-200 mono truncate max-w-[140px]">mimo-v2.6-free</span></div>
+              <div class="flex justify-between"><span>Current Task:</span> <span id="task-tester" class="text-indigo-400 truncate max-w-[120px]">None</span></div>
             </div>
+            <button onclick="openAgentConfigModal('tester')" class="w-full py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[11px] text-slate-300 font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Configure IDE & Model
+            </button>
           </div>
         </div>
       </div>
@@ -214,9 +226,9 @@
     </div>
   </main>
 
-  <!-- New Task Modal -->
+  <!-- Dispatch Task Modal with IDE and Model Selector -->
   <div id="task-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-bold text-white flex items-center gap-2">
           <i class="fa-solid fa-rocket text-indigo-400"></i> Dispatch New Task
@@ -235,6 +247,7 @@
           <textarea id="modal-task-desc" rows="3" placeholder="Context for Ánh Dương Building ERP..." 
                     class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Assign To Role</label>
@@ -255,9 +268,73 @@
             </select>
           </div>
         </div>
+
+        <!-- Tool / IDE Selection & Model Selection -->
+        <div class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/60">
+          <div>
+            <label class="block text-xs font-medium text-indigo-300 mb-1">Choose IDE / Execution Tool</label>
+            <select id="modal-task-engine" onchange="onTaskEngineChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="opencode">OpenCode CLI</option>
+              <option value="antigravity">Antigravity Pro (agy)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-indigo-300 mb-1">Choose AI Model</label>
+            <select id="modal-task-model" onchange="onTaskModelChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div id="modal-custom-model-box" class="hidden">
+          <label class="block text-xs font-medium text-slate-400 mb-1">Custom Model Identifier</label>
+          <input id="modal-task-custom-model" type="text" placeholder="e.g. claude-opus-4-6 or qwen3.8-max" 
+                 class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeNewTaskModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Cancel</button>
           <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-lg shadow-indigo-600/30">Dispatch to Agent</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Agent Configuration Modal -->
+  <div id="config-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i> Configure Agent: <span id="cfg-agent-role" class="uppercase text-indigo-400"></span>
+        </h3>
+        <button onclick="closeAgentConfigModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="saveAgentConfig(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Default IDE / Tool</label>
+          <select id="cfg-engine" onchange="onConfigEngineChange()" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+            <option value="opencode">OpenCode CLI</option>
+            <option value="antigravity">Antigravity Pro (agy)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Default AI Model</label>
+          <select id="cfg-model" onchange="onConfigModelChange()" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div id="cfg-custom-model-box" class="hidden">
+          <label class="block text-xs font-medium text-slate-400 mb-1">Custom Model Name</label>
+          <input id="cfg-custom-model" type="text" placeholder="e.g. opencode/claude-opus-4-6" 
+                 class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeAgentConfigModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium">Save Configuration</button>
         </div>
       </form>
     </div>

@@ -5,7 +5,7 @@ Runs on Ubuntu Server (port 8000), coordinates 4 agent machines and serves Dashb
 import os
 import json
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -175,6 +175,8 @@ class CreateTaskRequest(BaseModel):
     description: str = ""
     assigned_role: str = "lead"
     priority: str = "medium"
+    engine: Optional[str] = "opencode"   # opencode | antigravity
+    model: Optional[str] = None          # model override
 
 @app.post("/api/tasks")
 async def create_task(req: CreateTaskRequest):
@@ -185,6 +187,8 @@ async def create_task(req: CreateTaskRequest):
         description=req.description,
         assigned_role=req.assigned_role,
         priority=req.priority,
+        engine=req.engine,
+        model=req.model,
         status="pending"
     )
     # Find matching agent for role
@@ -200,7 +204,7 @@ async def create_task(req: CreateTaskRequest):
         task.assigned_agent_id = target_agent_id
         task.status = "in_progress"
         await storage.update_agent_status(target_agent_id, "busy", current_task_id=task_id)
-        # Dispatch JSON-RPC to agent
+        # Dispatch JSON-RPC to agent with engine and model choice
         payload = {
             "jsonrpc": "2.0",
             "method": "task.assign",
@@ -208,16 +212,38 @@ async def create_task(req: CreateTaskRequest):
                 "task_id": task_id,
                 "title": task.title,
                 "description": task.description,
-                "priority": task.priority
+                "priority": task.priority,
+                "engine": task.engine,
+                "model": task.model
             },
             "id": 1
         }
         await target_ws.send_text(json.dumps(payload))
-        await storage.add_message("Hub", f"Assigned {task_id} to {target_agent_id} ({req.assigned_role})")
+        engine_label = f"{task.engine or 'default'} ({task.model or 'default'})"
+        await storage.add_message("Hub", f"Assigned {task_id} to {target_agent_id} [{engine_label}]")
 
     await storage.save_task(task)
     await broadcast_ui("task_created", task.dict())
     return task
+
+class UpdateAgentConfig(BaseModel):
+    engine: str
+    model: str
+
+@app.post("/api/agents/{agent_id}/config")
+async def update_agent_config(agent_id: str, req: UpdateAgentConfig):
+    if agent_id in storage.agents:
+        storage.agents[agent_id].engine = req.engine
+        storage.agents[agent_id].model = req.model
+        await broadcast_ui("agent_update", storage.agents[agent_id].dict())
+        if agent_id in active_connections:
+            await active_connections[agent_id].send_text(json.dumps({
+                "jsonrpc": "2.0",
+                "method": "agent.config_update",
+                "params": {"engine": req.engine, "model": req.model}
+            }))
+        return {"status": "ok", "agent": storage.agents[agent_id]}
+    raise HTTPException(status_code=404, detail="Agent not found")
 
 @app.get("/api/messages")
 async def get_messages():
