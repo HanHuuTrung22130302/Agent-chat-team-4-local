@@ -49,7 +49,7 @@
 | Database | PostgreSQL 16 | Primary data store — [D005](DECISIONS.md) |
 | ORM | SQLAlchemy 2.0 | Async support |
 | API Protocol | JSON-RPC 2.0 | Agent communication — [D002](DECISIONS.md) |
-| Git | Gitea (self-hosted) + GitHub mirror | — [D003](DECISIONS.md) |
+| Git Hosting | Gitea (LAN primary) + GitHub: `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git` | — [D003](DECISIONS.md) |
 | Containerization | Docker + Docker Compose | All services containerized |
 | CI/CD | Gitea Actions | Lint → Test → Build → Deploy |
 

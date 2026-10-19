@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  hub:
+    build:
+      context: ./hub
+      dockerfile: Dockerfile
+    container_name: agentforge-hub
+    restart: always
+    network_mode: "host"
+    environment:
+      - DATABASE_URL=postgresql://postgres:1@127.0.0.1:5432/agentforge
+      - PORT=8000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

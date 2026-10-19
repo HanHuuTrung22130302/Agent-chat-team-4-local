@@ -81,6 +81,17 @@
 | Decision | **Full autonomous mode** — agents proceed without per-step human approval |
 | Rationale | User preference; maximizes throughput; human monitors via Dashboard; can intervene via Hub commands |
 
+### D008: Model Cost Optimization — Default to Free Models
+
+| Field | Detail |
+|-------|--------|
+| Date | 2025-01 |
+| Status | **Accepted** |
+| Context | Strict user budget constraint ($20 total credit). Need to prevent accidental API consumption during testing and development iterations. |
+| Alternatives | Use paid Claude Opus / DeepSeek Pro for everything, use local Ollama only |
+| Decision | **Use OpenCode FREE models (`deepseek-v4.1-flash-free`, `mimo-v2.6-flash-free`, `nemotron-3.5-lightning-free`) and Antigravity free tier for all automated test runs, dev cycles, and task verification.** |
+| Rationale | Zero cost for 95% of agent executions; preserve user credit exclusively for final architectural reviews or when explicitly instructed. |
+
 ---
 
 ## Template
