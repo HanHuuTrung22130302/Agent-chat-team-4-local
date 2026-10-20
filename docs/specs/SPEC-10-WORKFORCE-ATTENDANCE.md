@@ -107,7 +107,7 @@ Ngoài ra, hợp đồng FIDIC D&B yêu cầu Nhà thầu duy trì **hồ sơ nh
 
 ### 2.1 Coverage Matrix (User Story → Acceptance Criteria)
 
-Every story has at least one executable scenario. "Report" rows are verified through the report/UI acceptance in §8 rather than Gherkin, because they assert presentation, not a state transition.
+Every story has at least one executable scenario. Rows that reference §8 are presentation assertions (live board, dashboard) verified through the UI acceptance rather than Gherkin, because they do not change state.
 
 | Story | Acceptance Criteria | Story | Acceptance Criteria |
 |---|---|---|---|

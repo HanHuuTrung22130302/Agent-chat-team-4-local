@@ -198,7 +198,7 @@ flowchart LR
 
 > **ADB policy note**: Subcontractor construction payments are mapped to **627 (chi phí sản xuất chung) / 1547**, following the roadmap's `1547 — Chi phí sản xuất chung / thuê ngoài`. Enterprises that treat subcontract work as direct material/labour may map to `621`/`622`; the mapping is configuration (`cost_codes.default_account_code`), not code.
 
-**Rule WIP-4 (Cost allocation)**: A cost transaction may be split across WBS items via `cost_allocations`. If no allocation rows exist, 100% goes to the header `wbs_item_id`. If allocation rows exist, they must sum to **100% ± 0,01**, otherwise **422 `COST_ALLOCATION_NOT_100_PERCENT`**.
+**Rule WIP-4 (Cost allocation)**: A cost transaction may be split across WBS items via `cost_allocations`. If no allocation rows exist, 100% goes to the header `wbs_item_id`. If allocation rows exist, they must sum to **100% ± 0,01**, otherwise **422 `ALLOCATION_NOT_100_PERCENT`**.
 
 **Rule WIP-5 (Period gate)**: A cost can only be posted into a period with `status='OPEN'`. Posting into a closed period returns **409 `PERIOD_CLOSED`**. Late invoices for a closed period are posted in the current open period with `transaction_date` = original date and an explanatory note (`LATE_COST`).
 
