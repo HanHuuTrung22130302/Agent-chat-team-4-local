@@ -37,14 +37,24 @@ if not "%1"=="" (
     goto START
 )
 
+:MENU
 echo Select the role for this computer:
 echo [1] Lead / Architect     (PC-3: Antigravity Pro Jio - Gemini 3.8 Flash / Claude Opus)
 echo [2] BA / Spec Writer     (PC-4: Antigravity Pro Jio - Gemini 3.8 Flash / Claude Opus)
 echo [3] Developer            (PC-1: Antigravity / OpenCode - Free)
 echo [4] Tester / QA          (PC-2: Antigravity / OpenCode - Free)
+echo [5] Diagnostics Check   (Verify agy / opencode CLI & Hub connection)
 echo.
 
-set /p choice="Enter choice [1-4] (Default 3): "
+set /p choice="Enter choice [1-5] (Default 3): "
+
+if "%choice%"=="5" (
+    echo.
+    python check_environment.py
+    echo.
+    pause
+    goto MENU
+)
 
 if "%choice%"=="1" (
     set ROLE=lead

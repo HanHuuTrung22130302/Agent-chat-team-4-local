@@ -6,8 +6,11 @@ import subprocess
 import shutil
 import logging
 import os
+import sys
 
 logger = logging.getLogger("agentforge.engines")
+
+IS_WINDOWS = sys.platform == "win32"
 
 QUOTA_ERROR_KEYWORDS = [
     "resource_exhausted", "429", "rate limit", "quota reached", 
@@ -27,17 +30,25 @@ def find_agy_executable() -> str:
     user_profile = os.environ.get("USERPROFILE", "")
     app_data = os.environ.get("APPDATA", "")
     local_app_data = os.environ.get("LOCALAPPDATA", "")
+    program_files = os.environ.get("ProgramFiles", "C:\\Program Files")
+    program_files_x86 = os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")
+
     candidates = [
         os.path.join(local_app_data, "agy", "bin", "agy.exe"),
         os.path.join(app_data, "Antigravity", "bin", "agy-node.cmd"),
+        os.path.join(app_data, "Antigravity", "bin", "agy.cmd"),
         os.path.join(user_profile, "AppData", "Local", "agy", "bin", "agy.exe"),
         os.path.join(user_profile, ".gemini", "antigravity", "bin", "agy.exe"),
         os.path.join(user_profile, "AppData", "Local", "Programs", "Antigravity", "agy.exe"),
+        os.path.join(user_profile, "AppData", "Local", "Programs", "Antigravity", "resources", "app", "bin", "agy.exe"),
+        os.path.join(program_files, "Antigravity", "bin", "agy.exe"),
+        os.path.join(program_files, "Antigravity", "agy.exe"),
+        os.path.join(program_files_x86, "Antigravity", "bin", "agy.exe"),
     ]
     for c in candidates:
-        if os.path.exists(c):
+        if os.path.isfile(c):
             return c
-    return "agy.exe"
+    return "agy"
 
 def find_opencode_executable() -> str:
     """Finds opencode CLI across standard Windows / npm paths."""
@@ -56,7 +67,7 @@ def find_opencode_executable() -> str:
         os.path.join(user_profile, ".local", "bin", "opencode")
     ]
     for c in candidates:
-        if os.path.exists(c):
+        if os.path.isfile(c):
             return c
     return "opencode"
 
@@ -75,7 +86,8 @@ class OpenCodeEngine:
                 [self.cmd, "run", "-m", target_model, prompt],
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
+                shell=IS_WINDOWS
             )
             output = result.stdout.strip()
             err_msg = result.stderr.strip() or output
@@ -92,7 +104,8 @@ class OpenCodeEngine:
                         [self.cmd, "run", "-m", self.fallback_model, prompt],
                         capture_output=True,
                         text=True,
-                        timeout=300
+                        timeout=300,
+                        shell=IS_WINDOWS
                     )
                     if fallback_result.returncode == 0:
                         return f"[Notice: Auto-switched to {self.fallback_model} due to quota limit on {target_model}]\n\n" + fallback_result.stdout.strip()
@@ -103,7 +116,7 @@ class OpenCodeEngine:
             
             # Smart Engine Fallback: If OpenCode fails (e.g. expired key or missing), auto-try Antigravity if available
             agy_bin = find_agy_executable()
-            if os.path.exists(agy_bin) or shutil.which(agy_bin):
+            if os.path.exists(agy_bin) or shutil.which(agy_bin) or agy_bin == "agy":
                 logger.info(f"==> Auto-fallback to Antigravity CLI ({agy_bin}) due to OpenCode error...")
                 agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
                 agy_output = agy_engine.execute(prompt)
@@ -114,7 +127,7 @@ class OpenCodeEngine:
         except Exception as e:
             logger.error(f"OpenCode execution failed: {e}")
             agy_bin = find_agy_executable()
-            if os.path.exists(agy_bin) or shutil.which(agy_bin):
+            if os.path.exists(agy_bin) or shutil.which(agy_bin) or agy_bin == "agy":
                 logger.info(f"==> Auto-fallback to Antigravity CLI ({agy_bin}) due to OpenCode exception...")
                 agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
                 return agy_engine.execute(prompt)
@@ -135,7 +148,8 @@ class AntigravityEngine:
                 [self.cmd, "-p", prompt, "--model", target_model, "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
+                shell=IS_WINDOWS
             )
             output = result.stdout.strip()
             err_msg = result.stderr.strip() or output
@@ -154,7 +168,8 @@ class AntigravityEngine:
                         [self.cmd, "-p", prompt, "--model", fb, "--dangerously-skip-permissions"],
                         capture_output=True,
                         text=True,
-                        timeout=300
+                        timeout=300,
+                        shell=IS_WINDOWS
                     )
                     if fallback_result.returncode == 0 and not is_quota_error(fallback_result.stdout):
                         return f"[Notice: Auto-switched to {fb} due to quota limit on {target_model}]\n\n" + fallback_result.stdout.strip()
@@ -163,19 +178,22 @@ class AntigravityEngine:
 
             # Smart Fallback to OpenCode if Antigravity failed
             opencode_bin = find_opencode_executable()
-            if os.path.exists(opencode_bin) or shutil.which(opencode_bin):
-                logger.info(f"==> Auto-fallback to OpenCode CLI ({opencode_bin}) due to Antigravity error...")
+            if os.path.exists(opencode_bin) or shutil.which(opencode_bin) or opencode_bin == "opencode":
+                logger.info(f"==> Auto-fallback to OpenCode CLI ({opencode_bin}) due to Antigravity error: {err_msg[:60]}...")
                 op_engine = OpenCodeEngine()
-                return op_engine.execute(prompt)
+                fallback_output = op_engine.execute(prompt)
+                if not fallback_output.startswith("[") or "Notice:" in fallback_output:
+                    return f"[Notice: Auto-switched to OpenCode because Antigravity failed: {err_msg[:80]}]\n\n" + fallback_output
 
             return f"[Antigravity Error]: {err_msg}"
         except Exception as e:
+            logger.error(f"Antigravity exception: {e}")
             opencode_bin = find_opencode_executable()
-            if os.path.exists(opencode_bin) or shutil.which(opencode_bin):
+            if os.path.exists(opencode_bin) or shutil.which(opencode_bin) or opencode_bin == "opencode":
                 logger.info(f"==> Auto-fallback to OpenCode CLI ({opencode_bin}) due to Antigravity exception: {e}")
                 op_engine = OpenCodeEngine()
                 return op_engine.execute(prompt)
-            return f"[Execution Exception]: {e}"
+            return f"[Execution Exception]: {e} (Antigravity binary '{self.cmd}' could not be invoked. Check PATH or installation)"
 
 def get_engine(engine_name: str, model: str = None):
     if engine_name.lower() == "antigravity":

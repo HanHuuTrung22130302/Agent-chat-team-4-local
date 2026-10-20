@@ -95,6 +95,12 @@ When a human user initiates a **NEW project idea**:
   - `agentforge/*` (Core orchestrator and agent daemon code)
 - **Zero-Pollution Invariant**: The active context window must strictly reflect ONLY the current project to prevent hallucinations and wasted tokens.
 
+## Direct Lead IDE/CLI Authority Invariant
+
+- **Native Interface Freedom**: The Human User and Lead Agent may initiate, direct, and dispatch work directly from **any IDE (Antigravity IDE, Cursor, VS Code), CLI (`agy`, `opencode`), or Desktop App** on machines configured with the Lead role.
+- **No Dashboard Prerequisite**: The Web Dashboard (`http://192.168.1.50:8000`) is an observational cockpit for monitoring real-time feeds, not a mandatory bottleneck for task creation.
+- **Direct Dispatch Tools**: Lead can dispatch work using `python agentforge/agent/dispatch.py` or direct HTTP POST to `/api/tasks`.
+
 ## Tool & Skill Auto-Sync Invariant
 
 - **Automatic Repository Push**: Whenever any agent adds, upgrades, or modifies skills, prompts, IDE adapters, or core platform code in `agentforge/` or `docs/`:

@@ -19,6 +19,25 @@
 | **Developer** | Implement features, write tests, fix bugs | [CONSTITUTION.md](CONSTITUTION.md), [TASKS template](docs/ai/templates/TASKS.md) |
 | **Tester** | Verify implementations, run test suites, report defects | [TASKS template](docs/ai/templates/TASKS.md), specs |
 
+## Lead Interaction Modes (IDE / CLI / Desktop App First)
+
+> [!TIP]
+> **No Dashboard Required to Dispatch Work!**  
+> The Human User and Lead Agent can operate directly inside **Antigravity IDE, Cursor, OpenCode CLI, or Desktop Apps** (Claude, Antigravity, ChatGPT).
+
+- **Mode A: Native IDE / CLI (Primary)**:
+  - Give ideas, directives, or module requests directly in your IDE chat or CLI prompt.
+  - Lead analyzes requirements, creates/updates `docs/plans/PLAN-xxx.md`, and dispatches tasks immediately via CLI:
+    ```bash
+    # Dispatch single task
+    python agentforge/agent/dispatch.py --role ba --title "Viết spec Thầu phụ" --desc "FIDIC..."
+    
+    # Auto-dispatch entire plan from Markdown table
+    python agentforge/agent/dispatch.py --plan docs/plans/PLAN-xxx.md
+    ```
+- **Mode B: Central Web Dashboard (Observability)**:
+  - Monitor live agent status and real-time logs at `http://192.168.1.50:8000`.
+
 ## How to Identify Your Role
 
 Your role is determined by the **system prompt or task assignment** you receive. Look for:

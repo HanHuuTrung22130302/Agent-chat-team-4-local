@@ -27,22 +27,41 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    participant L as Lead
-    participant B as BA
-    participant D as Developer
-    participant T as Tester
+    actor H as Human (User)
+    participant L as Lead (IDE / CLI / Desktop App)
+    participant Hub as Hub (192.168.1.50:8000)
+    participant B as BA (PC-4)
+    participant D as Developer (PC-1)
+    participant T as Tester (PC-2)
 
-    L->>B: Request spec for feature
-    B->>L: Deliver spec (SPEC.md)
-    L->>L: Decompose into tasks (PLAN.md)
-    L->>D: Assign task
-    D->>D: Implement on feature branch
-    D->>T: Request verification (PR)
-    T->>T: Run tests, review
-    T-->>D: Fail → defect report
-    T->>L: Pass → approve merge
-    L->>L: Merge & update state
+    H->>L: Propose idea/directive directly in IDE/CLI chat
+    L->>L: Synthesize architecture & write plan (docs/plans/)
+    L->>Hub: Dispatch tasks via CLI tool (dispatch.py / API)
+    Hub->>B: Push spec task via WebSocket
+    B->>Hub: Complete spec (docs/specs/)
+    Hub->>D: Push coding task (Spring Boot / React)
+    D->>Hub: Complete implementation
+    Hub->>T: Push verification task (JUnit 5 / tests)
+    T->>Hub: Report test verification
 ```
+
+### Lead Initiation via IDE / CLI (No Dashboard Required)
+
+The Human User can initiate and steer any feature or project directly from the IDE/CLI on any machine designated as Lead (e.g. PC-3):
+1. **Interactive Chat in IDE**: Discuss architecture and requirements with the Lead AI assistant.
+2. **Plan Generation**: Lead writes the breakdown into `docs/plans/` using the [PLAN template](docs/ai/templates/PLAN.md).
+3. **Instant CLI Dispatch**:
+   ```bash
+   # Dispatch a single task to BA, Dev, or Tester
+   python agentforge/agent/dispatch.py --role ba --title "Viết spec..." --desc "..."
+
+   # Or parse and dispatch all tasks in a Markdown plan file
+   python agentforge/agent/dispatch.py --plan docs/plans/PLAN-002.md
+
+   # Check cluster status
+   python agentforge/agent/dispatch.py --status
+   ```
+4. **Autonomous Team Execution**: Connected daemons on PC-1, PC-2, PC-4 immediately receive tasks over WebSocket and execute concurrently.
 
 ## Task State Machine
 

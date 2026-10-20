@@ -34,7 +34,21 @@ When a new project or epic request arrives:
 - Create epics and assign initial specification tasks to the **BA Agent**.
 
 ### 2. Task Assignment Protocol
-Send structured JSON-RPC messages via Hub:
+
+You can dispatch tasks directly from this session using the CLI dispatcher:
+```bash
+# Dispatch to BA
+python agentforge/agent/dispatch.py --role ba --title "Viết spec..." --desc "..."
+
+# Dispatch to Developer
+python agentforge/agent/dispatch.py --role developer --title "Implement..." --desc "..."
+
+# Dispatch all tasks from an existing plan file
+python agentforge/agent/dispatch.py --plan docs/plans/PLAN-xxx.md
+```
+Tasks are immediately delivered to connected agents on PC-1, PC-2, PC-4 via the Hub WebSocket.
+
+Alternatively, send structured JSON-RPC messages via Hub:
 ```json
 {
   "jsonrpc": "2.0",

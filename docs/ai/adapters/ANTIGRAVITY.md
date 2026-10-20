@@ -46,6 +46,14 @@ Antigravity skills can automate repetitive tasks:
 - **task-tracker**: Updates task status in TASKS.md files
 - **session-closer**: Generates SESSION.md entry at end of session
 
+## Using Antigravity as the Direct Lead Cockpit
+
+When pairing with the Lead Agent inside Antigravity IDE:
+1. **Chat directly with the Lead**: Provide any architectural directive or module request.
+2. **Lead creates plans**: Saves structured breakdown to `docs/plans/`.
+3. **Dispatch to squad**: Lead executes `python agentforge/agent/dispatch.py` directly from the chat or terminal.
+4. **No dashboard needed**: Connected daemons on PC-1..4 pick up tasks instantly over the local WiFi/LAN.
+
 ## Agent Daemon Integration
 
 The agent daemon runs alongside Antigravity:
