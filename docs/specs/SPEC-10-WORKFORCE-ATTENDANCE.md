@@ -4,7 +4,7 @@
 > **Author**: BA Agent (PC-4 — `ba-hant_lap`)
 > **Task**: TASK-025 — "Dac ta Module 10 (Nhan luc & Cham cong GPS) va Module 11 (Ke toan Chi phi WIP D&B)"
 > **Status**: Review (chờ Lead duyệt)
-> **Version**: 1.1.0
+> **Version**: 1.2.0
 > **Date**: 2026-10-21
 > **Stack**: Java 21 + Spring Boot 3.3.x + PostgreSQL 17 + React 18 + TypeScript
 > **Target Enterprise**: Ánh Dương Building (ADB) — Tổng thầu Thiết kế & Thi công (D&B) Hạng I
@@ -22,6 +22,7 @@
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.2.0 | 2026-10-21 | BA Agent | **2026 legal-currency update + arithmetic hardening.** PIT replaced by Luật 109/2025/QH15 & NĐ 253/2026/NĐ-CP (5 brackets; 15,5tr/6,2tr deductions; meal cap 1,2tr from kỳ tính thuế 2026); minimum wage updated to NĐ 293/2025/NĐ-CP (5,31/4,73/4,14/3,70 triệu); insurance cap updated to 20×2,53tr = 50,6tr (NĐ 161/2026/NĐ-CP); Luật BHXH 2024 cited. Added effective-dated `minimum_wage_rules`, `pit_policies`, `pit_brackets` and linked them to payroll for audit. Fixed AC-10-08 overtime/night arithmetic (30 min ≠ 1,00 h; 06:00–06:30 is outside the night window); fixed §4.1 unpaid-break omission (`payable_minutes_raw` was defined but never applied) and added AC-10-29; fixed `is_absent` so paid leave is not counted as absence; recalculated AC-10-16/AC-10-17 under the 2026 PIT rules. |
 | 1.1.0 | 2026-10-21 | BA Agent | Review fixes: `chk_attendance_ot_night` no longer forbids night OT (aligns with §4.1 — `night_minutes` excludes OT-night); BHTN ceiling corrected to 20× lương tối thiểu vùng; employer BHXH split corrected to 3383 (17,0%) / 3386 (0,5%); `OT_NOT_APPROVED`, `OVERTIME_CAP_BREACH`, `PAYSLIP_ACCESS_DENIED`, `DISPUTE_WINDOW_EXPIRED` added to the error registry; AC-10-25…AC-10-28 added and US→AC coverage matrix (§2.1) added; DDL parse record added (§6.3). |
 | 1.0.0 | 2026-10-21 | BA Agent | Initial issue for Lead review. |
 
@@ -48,18 +49,20 @@ Ngoài ra, hợp đồng FIDIC D&B yêu cầu Nhà thầu duy trì **hồ sơ nh
 | **Bộ luật Lao động 2019** (Luật 45/2019/QH14) | Thời giờ làm việc, tiền lương | Điều 98 (tiền lương làm thêm giờ, làm việc ban đêm: 150%/200%/300%, ban đêm +30%, làm thêm giờ ban đêm +20%); Điều 105 (8 giờ/ngày, 48 giờ/tuần); Điều 106 (giờ làm việc ban đêm 22:00–06:00); Điều 107 (giới hạn làm thêm giờ); Điều 109 (nghỉ giữa giờ ít nhất 30 phút, ca đêm 45 phút, **tính vào giờ làm việc**) |
 | **Nghị định 145/2020/NĐ-CP** | Chi tiết thi hành BLLĐ về điều kiện lao động, quan hệ lao động | Điều 55 (tiền lương làm thêm giờ), Điều 56 (tiền lương làm việc ban đêm = 130%), Điều 57 (tiền lương làm thêm giờ vào ban đêm: 200%/270%/390%) |
 | **Nghị quyết 17/2022/UBTVQH15** | Giới hạn làm thêm giờ | Nâng trần làm thêm giờ tháng lên **60 giờ** đối với trường hợp đủ điều kiện hưởng trần 300 giờ/năm |
-| **Nghị định 74/2024/NĐ-CP** | Lương tối thiểu vùng | Vùng I 4.960.000 đ/tháng; II 4.410.000; III 3.860.000; IV 3.450.000 (làm sàn kiểm tra lương cơ bản) |
+| **Nghị định 293/2025/NĐ-CP** | Lương tối thiểu vùng | Từ **01/01/2026**: Vùng I 5.310.000 đ/tháng; II 4.730.000; III 4.140.000; IV 3.700.000 (thay thế NĐ 74/2024/NĐ-CP; làm sàn kiểm tra lương cơ bản) |
 | **Thông tư 11/2020/TT-BLĐTBXH** | Danh mục nghề, công việc nặng nhọc, độc hại, nguy hiểm | Xác định nhóm điều kiện lao động; áp dụng giờ làm việc rút ngắn **7 giờ/ngày, 42 giờ/tuần** (6 giờ/ngày với nhóm đặc biệt nặng nhọc) |
 | **Luật An toàn, vệ sinh lao động 2015** + **Nghị định 44/2016/NĐ-CP** | Huấn luyện an toàn | Thẻ an toàn, chứng nhận huấn luyện nhóm 1–4; điều kiện vào công trường |
 | **Nghị định 13/2023/NĐ-CP** | Bảo vệ dữ liệu cá nhân | Dữ liệu sinh trắc học là dữ liệu nhạy cảm; cần đồng ý riêng, thông báo mục đích, đánh giá tác động xử lý (DPIA), quyền rút lại đồng ý |
 | **Luật Kế toán 2015** (Luật 88/2015/QH13) | Chứng từ kế toán | Lưu trữ tài liệu kế toán (bảng lương, bảng chấm công) **10 năm** |
-| **Thông tư 200/2014/TT-BTC** | Chế độ kế toán | Tiền lương trực tiếp → TK 622 → kết chuyển TK 154; BHXH/BHYT/BHTN → TK 338 |
+| **Thông tư 99/2025/TT-BTC** (hiệu lực 01/01/2026, thay TT 200/2014/TT-BTC) | Chế độ kế toán doanh nghiệp | Tiền lương trực tiếp → TK 622 → kết chuyển TK 154; BHXH/BHYT/BHTN → TK 338 |
 | **Thông tư 12/2021/TT-BXD** | Định mức xây dựng | Hao phí nhân công (công/mã hiệu) → định mức giờ công để đo năng suất |
-| **Thông tư 111/2013/TT-BTC** (sửa đổi bởi TT 92/2015/TT-BTC) | Thuế thu nhập cá nhân | Giảm trừ gia cảnh, biểu thuế lũy tiến, mức miễn thuế phụ cấp ăn ca **730.000 đ/tháng** |
-| **Luật BHXH 2014** + **Nghị định 143/2018/NĐ-CP** | Bảo hiểm xã hội | Tỷ lệ đóng: NLĐ 10,5% (8% BHXH + 1,5% BHYT + 1% BHTN); NSDLĐ 21,5% (17,5% + 3% + 1%) |
+| **Thông tư 111/2013/TT-BTC** (áp dụng đến hết kỳ tính thuế 2025) | Thuế thu nhập cá nhân (chế độ cũ) | Chỉ dùng để tính lại kỳ trước 01/01/2026: giảm trừ 11.000.000/4.400.000 đ, biểu 7 bậc, miễn thuế ăn ca 730.000 đ/tháng |
+| **Luật Thuế TNCN 2025** (Luật 109/2025/QH15) + **Nghị định 253/2026/NĐ-CP** | Thuế thu nhập cá nhân từ kỳ tính thuế 2026 | Áp dụng cho thu nhập từ tiền lương, tiền công của cá nhân cư trú **từ kỳ tính thuế năm 2026** (không chia đôi năm): giảm trừ bản thân **15.500.000 đ/tháng**, người phụ thuộc **6.200.000 đ/người/tháng**; biểu lũy tiến **5 bậc** (5%/10%/20%/30%/35%, ngưỡng 10/30/60/100 triệu); miễn thuế tiền ăn giữa ca **1.200.000 đ/người/tháng** (NĐ 253/2026 Điều 8) |
+| **Luật BHXH 2024** (Luật 41/2024/QH15, hiệu lực 01/07/2025) + **Luật Việc làm 2013** | Bảo hiểm xã hội, BHYT, BHTN | Tỷ lệ đóng: NLĐ 10,5% (8% BHXH + 1,5% BHYT + 1% BHTN); NSDLĐ 21,5% (17,5% + 3% + 1%). Trần nền đóng BHXH/BHYT = **20× lương cơ sở**; từ 01/07/2026 lương cơ sở **2.530.000 đ** → trần **50.600.000 đ** (NĐ 161/2026/NĐ-CP) |
+| **Nghị định 161/2026/NĐ-CP** | Mức lương cơ sở | Từ 01/07/2026: 2.530.000 đ/tháng; dùng để xác định trần đóng BHXH/BHYT 20× (50.600.000 đ) |
 | **FIDIC Yellow Book 2017 (D&B)** | Hợp đồng tổng thầu | Sub-Clause 6.4 (Labour Laws), 6.5 (Working Hours), 6.10 (Records of Contractor's Personnel and Equipment) |
 
-> **Ghi chú pháp lý**: Các mức lương tối thiểu, mức giảm trừ và tỷ lệ đóng bảo hiểm thay đổi theo năm. Tất cả được đưa vào bảng cấu hình (`workforce_mgmt.workforce_alert_rules`, `pay_periods`, `allowance_types`) và **không hard-code** trong mã nguồn.
+> **Ghi chú pháp lý**: Các mức lương tối thiểu, mức giảm trừ, biểu thuế và tỷ lệ đóng bảo hiểm thay đổi theo năm. Tất cả được đưa vào bảng cấu hình có hiệu lực theo ngày (`workforce_mgmt.minimum_wage_rules`, `pit_policies`, `pit_brackets`, `allowance_types`, `pay_periods`) và **không hard-code** trong mã nguồn. Mỗi kỳ lương lưu lại `pit_policy_id` đã áp dụng để tái lập được phiếu lương sau khi luật thay đổi.
 
 ### 1.3 Workforce KPI Model
 
@@ -113,7 +116,7 @@ Every story has at least one executable scenario. Rows that reference §8 are pr
 |---|---|---|---|
 | US-10-01 | AC-10-13, AC-10-16 | US-10-12 | AC-10-19 |
 | US-10-02 | AC-10-13 | US-10-13 | AC-10-18 |
-| US-10-03 | AC-10-01, AC-10-05 | US-10-14 | AC-10-10 … AC-10-12, AC-10-16, AC-10-17 |
+| US-10-03 | AC-10-01, AC-10-05 | US-10-14 | AC-10-10 … AC-10-12, AC-10-16, AC-10-17, AC-10-29 |
 | US-10-04 | AC-10-01 … AC-10-04 | US-10-15 | AC-10-20, AC-10-24 |
 | US-10-05 | AC-10-06, AC-10-07 | US-10-16 | AC-10-23 |
 | US-10-06 | AC-10-01 (live board) + §8.1 | US-10-17 | AC-10-21 |
@@ -351,16 +354,22 @@ stateDiagram-v2
 ### 4.1 Time Computation (authoritative)
 
 ```
-shift_span_minutes   = (shift.end_time - shift.start_time), +1440 if crosses_midnight
-payable_minutes_raw  = shift_span_minutes - (break_paid ? 0 : break_minutes)
-scheduled_minutes    = shift.standard_hours × 60
-worked_minutes       = checkout_at - checkin_at (local time, capped at shift_end + max_ot)
-payable_minutes      = min(worked_minutes, scheduled_minutes + ot_approved_minutes)
-regular_minutes      = min(payable_minutes, scheduled_minutes)
-overtime_minutes     = max(0, payable_minutes - scheduled_minutes)
+shift_span_minutes    = (shift.end_time - shift.start_time), +1440 if crosses_midnight
+scheduled_minutes     = shift.standard_hours × 60
+presence_minutes      = check_out_at - check_in_at                 (local time; early check-in is not paid)
+unpaid_break_minutes  = break_paid ? 0
+                                    : overlap(presence_interval,
+                                              [shift_start + break_start_offset_minutes,
+                                               shift_start + break_end_offset_minutes])
+worked_minutes        = max(0, presence_minutes - unpaid_break_minutes)
+payable_minutes       = min(worked_minutes, scheduled_minutes + ot_approved_minutes)
+regular_minutes       = min(payable_minutes, scheduled_minutes)
+overtime_minutes      = max(0, payable_minutes - scheduled_minutes)
 ```
 
 **Invariant**: `regular_minutes + overtime_minutes = payable_minutes`.
+
+> **Unpaid break rule**: a break is deducted **only for the minutes that actually overlap the employee's presence**. If the employee is absent during the break (late arrival / early leave), the absence is already excluded by `presence_minutes`, so the deduction is not applied twice. `break_paid = TRUE` (the statutory default for a mid-shift break under BLLĐ Điều 109) deducts nothing. The break window is stored as offsets from shift start, which works for a shift that crosses midnight (`CA_3`).
 
 **Night split** (local time, 22:00–06:00):
 ```
@@ -396,7 +405,7 @@ hourly_rate = base_salary / (standard_working_days_in_period × labor_category.s
 | **Overtime at night — weekly rest** | `ot_night_hours × hourly_rate × 270%` | NĐ 145/2020 Điều 57 |
 | **Overtime at night — holiday** | `ot_night_hours × hourly_rate × 390%` | NĐ 145/2020 Điều 57 |
 | **Hazard allowance** | `base_salary × hazard_allowance_rate` or fixed amount, pro-rated by attendance days | Labour Code + company policy |
-| **Meal allowance** | `meal_rate × attendance_days`, tax-exempt up to 730.000 đ/month | TT 111/2013/TT-BTC |
+| **Meal allowance** | `meal_rate × attendance_days`, tax-exempt up to **1.200.000 đ/person/month** | Luật 109/2025/QH15; NĐ 253/2026/NĐ-CP Điều 8 |
 | **Piece rate** | `accepted_quantity × unit_price × allocated_ratio` | Crew work order |
 | **Gross pay** | regular + OT + night + hazard + meal + other allowances + piece rate | — |
 
@@ -413,17 +422,19 @@ Night OT on public holiday = 300% + 30% + (20% × 300%) = 390%
 
 | Deduction | Rate / Formula | Cap / Note |
 |---|---|---|
-| **BHXH** | 8,0% of insurance salary | Insurance salary capped at 20× lương cơ sở |
-| **BHYT** | 1,5% | Insurance salary capped at 20× lương cơ sở |
+| **BHXH** | 8,0% of insurance salary | Insurance salary capped at 20× lương cơ sở = **50.600.000 đ** from 01/07/2026 (NĐ 161/2026/NĐ-CP) |
+| **BHYT** | 1,5% | Insurance salary capped at 20× lương cơ sở = **50.600.000 đ** from 01/07/2026 |
 | **BHTN** | 1,0% | Capped at **20× lương tối thiểu vùng** of the employee's `region_code` — *not* 20× lương cơ sở; contract ≥ 3 months |
 | **Union fee** | 1,0% | Only for union members |
-| **PIT** | Progressive 7 brackets (5% → 35%) | Personal deduction 11.000.000 đ/month; dependent 4.400.000 đ/person/month |
+| **PIT** | Progressive **5 brackets (5% → 35%)**, period 2026 onward | Personal deduction **15.500.000 đ/month**; dependent **6.200.000 đ/person/month** |
 | **Salary advance** | Outstanding advance | Cannot exceed net pay; carry forward if exceeded |
 | **Other** | Court order, damage, etc. | Must have legal basis and employee acknowledgement |
 
-**PIT monthly brackets**: 0–5M: 5%; 5–10M: 10%; 10–18M: 15%; 18–32M: 20%; 32–52M: 25%; 52–80M: 30%; >80M: 35%.
+**PIT monthly brackets (Luật 109/2025/QH15, kỳ tính thuế 2026)**: 0–10M: 5%; 10–30M: 10%; 30–60M: 20%; 60–100M: 30%; >100M: 35%.
 
-**Taxable income** = gross − BHXH/BHYT/BHTN − union fee − tax-exempt allowances (meal ≤ 730.000 đ/month) − personal deduction − dependants × 4.400.000.
+**Taxable income** = gross − BHXH/BHYT/BHTN − union fee − tax-exempt allowances (meal ≤ 1.200.000 đ/person/month) − personal deduction 15.500.000 − dependants × 6.200.000.
+
+> **Period cut-over**: a payroll period that starts **before 01/01/2026** is calculated with the legacy policy (`pit_policies.code = 'PIT_2013'`, effective 01/07/2020 – 31/12/2025: 7 brackets, 11.000.000/4.400.000, meal 730.000). From period 2026-01 the engine must select `PIT_2026`. Periods before 07/2020 are out of scope for V7 (no effective policy → `PIT_POLICY_NOT_FOUND`, never a silent fallback). The policy actually used is stored on `payroll_runs.pit_policy_id` and on each `payslips.pit_policy_id`, so a re-run after a law change is reproducible and never silently recalculates closed periods.
 
 ### 4.4 Employer Cost
 
@@ -586,11 +597,12 @@ Scenario AC-10-07: Đồng bộ muộn quá 24 giờ — cần xác nhận
 
 Scenario AC-10-08: Ca đêm qua nửa đêm — tách giờ ban đêm đúng
   Given ca "CA_3" có giờ 22:00–06:00 và được tính vào ngày công 2026-10-21
+  And có OT request đã duyệt cho 30 phút sau 06:00
   When công nhân check-in 21:52 và check-out 06:30 ngày 2026-10-22
   Then regular_hours phải bằng 8,00
-  And overtime_hours phải bằng 1,00 (30 phút làm thêm, làm tròn 15 phút)
+  And overtime_hours phải bằng 0,50 (30 phút làm thêm, không bị làm tròn về 0)
   And night_minutes phải bằng 480 (toàn bộ giờ thường nằm trong 22:00–06:00)
-  And overtime_night_minutes phải bằng 30
+  And overtime_night_minutes phải bằng 0 (06:00–06:30 nằm ngoài khung 22:00–06:00)
   And work_date của bản ghi phải là 2026-10-21
 
 Scenario AC-10-09: Nghỉ giữa giờ được tính vào giờ làm việc
@@ -646,22 +658,24 @@ Scenario AC-10-15: Làm thêm giờ không có phê duyệt — cảnh báo, kh�
   And nếu được xác nhận thì phải trả theo hệ số luật định
   And nếu không được xác nhận thì phải chuyển HR xử lý, KHÔNG tự động xoá giờ
 
-Scenario AC-10-16: Tính khấu trừ BHXH, công đoàn và thuế TNCN
-  Given lương gross tháng của công nhân là 15.000.000 đ
+Scenario AC-10-16: Tính khấu trừ BHXH, công đoàn và thuế TNCN theo luật 2026
+  Given lương gross tháng của công nhân là 40.000.000 đ
   And không có người phụ thuộc, không có phụ cấp miễn thuế
+  And kỳ lương thuộc năm 2026 nên áp dụng policy "PIT_2026"
   When bảng lương được tính
-  Then BHXH/BHYT/BHTN phải bằng 1.575.000 đ (10,5%)
-  And phí công đoàn phải bằng 150.000 đ (1%)
-  And thu nhập tính thuế phải bằng 2.275.000 đ
-  And thuế TNCN phải bằng 113.750 đ (5%)
-  And thực lĩnh phải bằng 13.161.250 đ
+  Then BHXH/BHYT/BHTN phải bằng 4.200.000 đ (10,5%, dưới trần 50.600.000 đ)
+  And phí công đoàn phải bằng 400.000 đ (1%)
+  And thu nhập tính thuế phải bằng 19.900.000 đ
+  And thuế TNCN phải bằng 1.490.000 đ (5% × 10.000.000 + 10% × 9.900.000)
+  And thực lĩnh phải bằng 33.910.000 đ
+  And phiếu lương phải lưu pit_policy_id trỏ tới "PIT_2026"
 
-Scenario AC-10-17: Phụ cấp ăn ca vượt mức miễn thuế
-  Given phụ cấp ăn ca là 30.000 đ/ngày và công nhân đi làm 26 ngày
+Scenario AC-10-17: Phụ cấp ăn ca vượt mức miễn thuế 2026
+  Given phụ cấp ăn ca là 50.000 đ/ngày và công nhân đi làm 26 ngày
   When bảng lương được tính
-  Then tổng phụ cấp ăn ca là 780.000 đ
-  And chỉ 730.000 đ được miễn thuế TNCN
-  And 50.000 đ phải được cộng vào thu nhập tính thuế
+  Then tổng phụ cấp ăn ca là 1.300.000 đ
+  And chỉ 1.200.000 đ được miễn thuế TNCN
+  And 100.000 đ phải được cộng vào thu nhập tính thuế
 
 Scenario AC-10-18: Khoán tổ đội — phân bổ không đủ 100% bị chặn
   Given một lệnh giao khoán đã duyệt với giá trị nghiệm thu kỳ này là 120.000.000 đ
@@ -746,6 +760,17 @@ Scenario AC-10-28: Năng suất dưới định mức 12/2021 ba ngày liên ti�
   Then productivity_ratio phải là 0,8065 và variance_manhours phải là 12,00
   And phải phân loại "CRITICAL_BELOW_NORM"
   And sau 3 ngày liên tiếp như vậy, phải tạo task điều tra nguyên nhân gốc (không tự động trừ lương)
+
+Scenario AC-10-29: Nghỉ giữa giờ không hưởng lương — trừ đúng phần giao nhau
+  Given ca "CA_HC" 08:00–17:00 với standard_hours = 8, break_minutes = 60, break_paid = false
+  And break window là 12:00–13:00 (offset 240 → 300 phút)
+  When công nhân check-in 08:00 và check-out 16:00
+  Then presence_minutes phải bằng 480
+  And unpaid_break_minutes phải bằng 60 (toàn bộ break nằm trong thời gian có mặt)
+  And payable_minutes phải bằng 420
+  And regular_hours phải bằng 7,00
+  And overtime_hours phải bằng 0 (không có OT được duyệt)
+  And nếu công nhân đi muộn vào lúc 12:30, phần break bị trừ chỉ là 30 phút (12:30–13:00), không trừ đủ 60 phút
 ```
 
 ---
@@ -972,6 +997,10 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.work_shifts (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     break_minutes INTEGER NOT NULL DEFAULT 30 CHECK (break_minutes BETWEEN 0 AND 240),
+    break_start_offset_minutes INTEGER NOT NULL DEFAULT 240
+        CHECK (break_start_offset_minutes BETWEEN 0 AND 1440),
+    break_end_offset_minutes INTEGER NOT NULL DEFAULT 270
+        CHECK (break_end_offset_minutes BETWEEN 0 AND 1440),
     break_paid BOOLEAN NOT NULL DEFAULT TRUE,          -- BLLĐ Điều 109: nghỉ giữa giờ tính vào giờ làm việc
     is_night_shift BOOLEAN NOT NULL DEFAULT FALSE,
     standard_hours NUMERIC(4,2) NOT NULL DEFAULT 8.00
@@ -980,7 +1009,11 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.work_shifts (
     early_leave_grace_minutes INTEGER NOT NULL DEFAULT 5 CHECK (early_leave_grace_minutes BETWEEN 0 AND 60),
     crosses_midnight BOOLEAN GENERATED ALWAYS AS (end_time <= start_time) STORED,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_shift_break_window CHECK (
+        break_end_offset_minutes > break_start_offset_minutes
+        AND break_end_offset_minutes - break_start_offset_minutes = break_minutes
+    )
 );
 
 -- ── 9. Tổ đội thi công ──────────────────────────────────────────────────
@@ -1132,9 +1165,10 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.attendance_records (
     overtime_hours NUMERIC(6,2) GENERATED ALWAYS AS (ROUND(overtime_minutes / 60.0, 2)) STORED,
     night_hours NUMERIC(6,2) GENERATED ALWAYS AS (ROUND(night_minutes / 60.0, 2)) STORED,
     overtime_night_hours NUMERIC(6,2) GENERATED ALWAYS AS (ROUND(overtime_night_minutes / 60.0, 2)) STORED,
-    is_absent BOOLEAN GENERATED ALWAYS AS (check_in_at IS NULL) STORED,
     attendance_status VARCHAR(20) NOT NULL DEFAULT 'PRESENT'
         CHECK (attendance_status IN ('PRESENT','ABSENT','HALF_DAY','PAID_LEAVE','UNPAID_LEAVE','SICK_LEAVE','HOLIDAY','OFF_SITE')),
+    -- Absence is an explicit no-show: a paid/sick/unpaid leave or holiday is NOT an absence.
+    is_absent BOOLEAN GENERATED ALWAYS AS (check_in_at IS NULL AND attendance_status = 'ABSENT') STORED,
     source VARCHAR(20) NOT NULL DEFAULT 'AUTO'
         CHECK (source IN ('AUTO','MANUAL','ADJUSTED')),
     status VARCHAR(25) NOT NULL DEFAULT 'DRAFT'
@@ -1395,11 +1429,58 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.pay_periods (
     CONSTRAINT chk_pay_period_dates CHECK (end_date >= start_date)
 );
 
--- ── 24. Lần chạy bảng lương ─────────────────────────────────────────────
+-- ── 24. Chính sách lương tối thiểu vùng (effective-dated) ────────────────
+CREATE TABLE IF NOT EXISTS workforce_mgmt.minimum_wage_rules (
+    id BIGSERIAL PRIMARY KEY,
+    rule_code VARCHAR(50) UNIQUE NOT NULL,            -- 'MW_2026_V1'
+    region_code VARCHAR(5) NOT NULL CHECK (region_code IN ('I','II','III','IV')),
+    monthly_amount NUMERIC(18,2) NOT NULL CHECK (monthly_amount > 0),
+    hourly_amount NUMERIC(18,2) CHECK (hourly_amount > 0),
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+    legal_basis TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_min_wage_dates CHECK (effective_to IS NULL OR effective_to >= effective_from),
+    UNIQUE (region_code, effective_from)
+);
+
+-- ── 25. Chính sách thuế TNCN (effective-dated) ──────────────────────────
+CREATE TABLE IF NOT EXISTS workforce_mgmt.pit_policies (
+    id BIGSERIAL PRIMARY KEY,
+    policy_code VARCHAR(50) UNIQUE NOT NULL,          -- 'PIT_2013','PIT_2026'
+    name VARCHAR(200) NOT NULL,
+    personal_deduction NUMERIC(18,2) NOT NULL CHECK (personal_deduction >= 0),
+    dependent_deduction NUMERIC(18,2) NOT NULL CHECK (dependent_deduction >= 0),
+    meal_exempt_cap_monthly NUMERIC(18,2) NOT NULL DEFAULT 0.00 CHECK (meal_exempt_cap_monthly >= 0),
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+    legal_basis TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_pit_policy_dates CHECK (effective_to IS NULL OR effective_to >= effective_from)
+);
+
+-- ── 26. Biểu thuế TNCN luỹ tiến từng phần ───────────────────────────────
+CREATE TABLE IF NOT EXISTS workforce_mgmt.pit_brackets (
+    id BIGSERIAL PRIMARY KEY,
+    pit_policy_id BIGINT NOT NULL REFERENCES workforce_mgmt.pit_policies(id) ON DELETE CASCADE,
+    bracket_no SMALLINT NOT NULL CHECK (bracket_no > 0),
+    lower_bound NUMERIC(18,2) NOT NULL CHECK (lower_bound >= 0),
+    upper_bound NUMERIC(18,2),                        -- NULL = bậc cao nhất (không giới hạn)
+    rate NUMERIC(5,4) NOT NULL CHECK (rate > 0 AND rate <= 1),
+    UNIQUE (pit_policy_id, bracket_no),
+    UNIQUE (pit_policy_id, lower_bound),
+    CONSTRAINT chk_pit_bracket_bounds
+        CHECK (upper_bound IS NULL OR upper_bound > lower_bound)
+);
+
+-- ── 27. Lần chạy bảng lương ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.payroll_runs (
     id BIGSERIAL PRIMARY KEY,
     run_no VARCHAR(50) UNIQUE NOT NULL,               -- 'PR-2026-10-R01'
     pay_period_id BIGINT NOT NULL REFERENCES workforce_mgmt.pay_periods(id),
+    pit_policy_id BIGINT REFERENCES workforce_mgmt.pit_policies(id),  -- bắt buộc khi status ≥ CALCULATED
     project_id BIGINT REFERENCES project_mgmt.projects(id),
     run_type VARCHAR(30) NOT NULL DEFAULT 'MONTHLY'
         CHECK (run_type IN ('MONTHLY','PROJECT','FINAL_SETTLEMENT','SUPPLEMENTARY')),
@@ -1422,12 +1503,14 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.payroll_runs (
     UNIQUE NULLS NOT DISTINCT (pay_period_id, project_id, run_type, revision)
 );
 
--- ── 25. Phiếu lương ─────────────────────────────────────────────────────
+-- ── 28. Phiếu lương ─────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.payslips (
     id BIGSERIAL PRIMARY KEY,
     payroll_run_id BIGINT NOT NULL REFERENCES workforce_mgmt.payroll_runs(id) ON DELETE CASCADE,
     employee_id BIGINT NOT NULL REFERENCES workforce_mgmt.employees(id),
     project_id BIGINT REFERENCES project_mgmt.projects(id),
+    pit_policy_id BIGINT REFERENCES workforce_mgmt.pit_policies(id),          -- policy thực tế đã áp dụng
+    minimum_wage_rule_id BIGINT REFERENCES workforce_mgmt.minimum_wage_rules(id), -- sàn lương đã kiểm tra
     days_worked NUMERIC(5,1) NOT NULL DEFAULT 0.0 CHECK (days_worked >= 0),
     regular_hours NUMERIC(8,2) NOT NULL DEFAULT 0.00 CHECK (regular_hours >= 0),
     overtime_hours NUMERIC(8,2) NOT NULL DEFAULT 0.00 CHECK (overtime_hours >= 0),
@@ -1464,7 +1547,7 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.payslips (
     UNIQUE (payroll_run_id, employee_id)
 );
 
--- ── 26. Phân bổ chi phí lương theo dự án/WBS ─────────────────────────────
+-- ── 29. Phân bổ chi phí lương theo dự án/WBS ─────────────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.payroll_cost_allocations (
     id BIGSERIAL PRIMARY KEY,
     payslip_id BIGINT NOT NULL REFERENCES workforce_mgmt.payslips(id) ON DELETE CASCADE,
@@ -1478,7 +1561,7 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.payroll_cost_allocations (
     UNIQUE NULLS NOT DISTINCT (payslip_id, project_id, wbs_item_id, cost_element)
 );
 
--- ── 27. Khiếu nại bảng công ─────────────────────────────────────────────
+-- ── 30. Khiếu nại bảng công ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.attendance_disputes (
     id BIGSERIAL PRIMARY KEY,
     dispute_no VARCHAR(50) UNIQUE NOT NULL,
@@ -1495,7 +1578,7 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.attendance_disputes (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ── 28. Thống kê ngày (dashboard + HSE cross-link) ───────────────────────
+-- ── 31. Thống kê ngày (dashboard + HSE cross-link) ───────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.workforce_daily_stats (
     id BIGSERIAL PRIMARY KEY,
     project_id BIGINT NOT NULL REFERENCES project_mgmt.projects(id) ON DELETE CASCADE,
@@ -1515,7 +1598,7 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.workforce_daily_stats (
     UNIQUE (project_id, stat_date, shift_id)
 );
 
--- ── 29. Ngưỡng cảnh báo nhân lực ────────────────────────────────────────
+-- ── 32. Ngưỡng cảnh báo nhân lực ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS workforce_mgmt.workforce_alert_rules (
     id BIGSERIAL PRIMARY KEY,
     rule_code VARCHAR(80) UNIQUE NOT NULL,
@@ -1532,14 +1615,14 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.workforce_alert_rules (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ── 30. FK bổ sung (tránh vòng lặp tạo bảng) ────────────────────────────
+-- ── 33. FK bổ sung (tránh vòng lặp tạo bảng) ────────────────────────────
 ALTER TABLE workforce_mgmt.attendance_records
     DROP CONSTRAINT IF EXISTS fk_attendance_payroll_run;
 ALTER TABLE workforce_mgmt.attendance_records
     ADD CONSTRAINT fk_attendance_payroll_run
     FOREIGN KEY (payroll_run_id) REFERENCES workforce_mgmt.payroll_runs(id) ON DELETE SET NULL;
 
--- ── 31. Index chiến lược ────────────────────────────────────────────────
+-- ── 34. Index chiến lược ────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_workers_employee ON workforce_mgmt.workers (employee_id);
 CREATE INDEX IF NOT EXISTS idx_workers_subcontractor ON workforce_mgmt.workers (subcontractor_id);
 CREATE INDEX IF NOT EXISTS idx_workers_status ON workforce_mgmt.workers (status, worker_type);
@@ -1575,7 +1658,7 @@ COMMENT ON COLUMN workforce_mgmt.attendance_records.overtime_night_minutes IS
 COMMENT ON TABLE workforce_mgmt.face_templates IS
     'Chỉ lưu tham chiếu vault đã mã hoá. Không lưu ảnh khuôn mặt trong database.';
 
--- ── 32. Trigger toàn vẹn ────────────────────────────────────────────────
+-- ── 35. Trigger toàn vẹn ────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION workforce_mgmt.fn_block_locked_attendance()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1696,14 +1779,14 @@ DROP TRIGGER IF EXISTS trg_payroll_run_touch ON workforce_mgmt.payroll_runs;
 CREATE TRIGGER trg_payroll_run_touch BEFORE UPDATE ON workforce_mgmt.payroll_runs
     FOR EACH ROW EXECUTE FUNCTION workforce_mgmt.fn_touch_updated_at();
 
--- ── 33. Dữ liệu nền (seed) ──────────────────────────────────────────────
+-- ── 36. Dữ liệu nền (seed) ──────────────────────────────────────────────
 INSERT INTO workforce_mgmt.work_shifts
-    (shift_code, name, start_time, end_time, break_minutes, break_paid, is_night_shift, standard_hours, late_grace_minutes, early_leave_grace_minutes)
+    (shift_code, name, start_time, end_time, break_minutes, break_start_offset_minutes, break_end_offset_minutes, break_paid, is_night_shift, standard_hours, late_grace_minutes, early_leave_grace_minutes)
 VALUES
-    ('CA_1',  'Ca 1 (06:00-14:00)', '06:00', '14:00', 30, TRUE,  FALSE, 8.00, 5, 5),
-    ('CA_2',  'Ca 2 (14:00-22:00)', '14:00', '22:00', 30, TRUE,  FALSE, 8.00, 5, 5),
-    ('CA_3',  'Ca 3 (22:00-06:00)', '22:00', '06:00', 45, TRUE,  TRUE,  8.00, 5, 5),
-    ('CA_HC', 'Hành chính (08:00-17:00)', '08:00', '17:00', 60, FALSE, FALSE, 8.00, 5, 5)
+    ('CA_1',  'Ca 1 (06:00-14:00)', '06:00', '14:00', 30, 240, 270, TRUE,  FALSE, 8.00, 5, 5),
+    ('CA_2',  'Ca 2 (14:00-22:00)', '14:00', '22:00', 30, 240, 270, TRUE,  FALSE, 8.00, 5, 5),
+    ('CA_3',  'Ca 3 (22:00-06:00)', '22:00', '06:00', 45, 240, 285, TRUE,  TRUE,  8.00, 5, 5),
+    ('CA_HC', 'Hành chính (08:00-17:00)', '08:00', '17:00', 60, 240, 300, FALSE, FALSE, 8.00, 5, 5)
 ON CONFLICT (shift_code) DO NOTHING;
 
 INSERT INTO workforce_mgmt.labor_categories
@@ -1721,7 +1804,7 @@ INSERT INTO workforce_mgmt.allowance_types
 VALUES
     ('HAZARD', 'Phụ cấp nặng nhọc, độc hại, nguy hiểm', 'PERCENT_BASE_SALARY', 10.0000, 0.00, 'PERCENT', TRUE, NULL, TRUE, 'Thông tư 11/2020/TT-BLĐTBXH'),
     ('MOBILE', 'Phụ cấp lưu động', 'FIXED_PER_DAY', 0.0000, 50000.00, 'VND/ngày', TRUE, NULL, FALSE, 'Thỏa ước lao động tập thể'),
-    ('MEAL', 'Phụ cấp ăn ca', 'FIXED_PER_DAY', 0.0000, 30000.00, 'VND/ngày', TRUE, 730000.00, FALSE, 'Thông tư 111/2013/TT-BTC'),
+    ('MEAL', 'Phụ cấp ăn ca', 'FIXED_PER_DAY', 0.0000, 30000.00, 'VND/ngày', TRUE, 1200000.00, FALSE, 'Luật 109/2025/QH15; NĐ 253/2026/NĐ-CP Điều 8'),
     ('ATTENDANCE', 'Phụ cấp chuyên cần', 'FIXED_PER_MONTH', 0.0000, 500000.00, 'VND/tháng', TRUE, NULL, FALSE, 'Thỏa ước lao động tập thể'),
     ('RESPONSIBILITY', 'Phụ cấp trách nhiệm', 'PERCENT_BASE_SALARY', 5.0000, 0.00, 'PERCENT', TRUE, NULL, TRUE, 'Thỏa ước lao động tập thể'),
     ('NIGHT_MEAL', 'Phụ cấp ăn ca đêm', 'PER_NIGHT_SHIFT', 0.0000, 50000.00, 'VND/ca đêm', TRUE, NULL, FALSE, 'Thỏa ước lao động tập thể'),
@@ -1735,6 +1818,48 @@ VALUES
     ('VN-LABOUR-2019', 4.00, 40.00, 60.00, 200.00, 300.00, FALSE, DATE '2021-01-01',
      'BLLĐ 2019 Điều 107; Nghị quyết 17/2022/UBTVQH15')
 ON CONFLICT (rule_code) DO NOTHING;
+
+INSERT INTO workforce_mgmt.minimum_wage_rules
+    (rule_code, region_code, monthly_amount, hourly_amount, effective_from, effective_to, legal_basis)
+VALUES
+    ('MW_2024_I',  'I',  4960000.00, NULL, DATE '2024-07-01', DATE '2025-12-31', 'Nghị định 74/2024/NĐ-CP'),
+    ('MW_2024_II', 'II', 4410000.00, NULL, DATE '2024-07-01', DATE '2025-12-31', 'Nghị định 74/2024/NĐ-CP'),
+    ('MW_2024_III','III',3860000.00, NULL, DATE '2024-07-01', DATE '2025-12-31', 'Nghị định 74/2024/NĐ-CP'),
+    ('MW_2024_IV', 'IV', 3450000.00, NULL, DATE '2024-07-01', DATE '2025-12-31', 'Nghị định 74/2024/NĐ-CP'),
+    ('MW_2026_I',  'I',  5310000.00, NULL, DATE '2026-01-01', NULL, 'Nghị định 293/2025/NĐ-CP'),
+    ('MW_2026_II', 'II', 4730000.00, NULL, DATE '2026-01-01', NULL, 'Nghị định 293/2025/NĐ-CP'),
+    ('MW_2026_III','III',4140000.00, NULL, DATE '2026-01-01', NULL, 'Nghị định 293/2025/NĐ-CP'),
+    ('MW_2026_IV', 'IV', 3700000.00, NULL, DATE '2026-01-01', NULL, 'Nghị định 293/2025/NĐ-CP')
+ON CONFLICT (rule_code) DO NOTHING;
+
+INSERT INTO workforce_mgmt.pit_policies
+    (policy_code, name, personal_deduction, dependent_deduction, meal_exempt_cap_monthly,
+     effective_from, effective_to, legal_basis)
+VALUES
+    ('PIT_2013', 'Thuế TNCN — chế độ TT 111/2013 (7 bậc, giảm trừ NQ 954/2020)', 11000000.00, 4400000.00, 730000.00,
+     DATE '2020-07-01', DATE '2025-12-31',
+     'Luật 04/2007/QH12 (sửa đổi 2012); Thông tư 111/2013/TT-BTC; NQ 954/2020/UBTVQH14'),
+    ('PIT_2026', 'Thuế TNCN — Luật 109/2025/QH15 (5 bậc)', 15500000.00, 6200000.00, 1200000.00,
+     DATE '2026-01-01', NULL,
+     'Luật 109/2025/QH15; Nghị định 253/2026/NĐ-CP')
+ON CONFLICT (policy_code) DO NOTHING;
+
+INSERT INTO workforce_mgmt.pit_brackets
+    (pit_policy_id, bracket_no, lower_bound, upper_bound, rate)
+VALUES
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 1, 0.00,        5000000.00,  0.0500),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 2, 5000000.00,  10000000.00, 0.1000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 3, 10000000.00, 18000000.00, 0.1500),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 4, 18000000.00, 32000000.00, 0.2000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 5, 32000000.00, 52000000.00, 0.2500),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 6, 52000000.00, 80000000.00, 0.3000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2013'), 7, 80000000.00, NULL,        0.3500),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2026'), 1, 0.00,         10000000.00, 0.0500),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2026'), 2, 10000000.00,  30000000.00, 0.1000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2026'), 3, 30000000.00,  60000000.00, 0.2000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2026'), 4, 60000000.00,  100000000.00,0.3000),
+    ((SELECT id FROM workforce_mgmt.pit_policies WHERE policy_code = 'PIT_2026'), 5, 100000000.00, NULL,        0.3500)
+ON CONFLICT (pit_policy_id, bracket_no) DO NOTHING;
 
 INSERT INTO workforce_mgmt.workforce_alert_rules
     (rule_code, rule_name, category, metric, operator, threshold_value, unit, severity)
@@ -1763,6 +1888,10 @@ ON CONFLICT (rule_code) DO NOTHING;
 | Locked attendance cannot be edited | Trigger `trg_block_locked_attendance` |
 | Idempotent device events | `UNIQUE (event_uuid)` |
 | Leave/absence records carry zero pay minutes | Service rule + `attendance_status` |
+| Paid/sick/holiday leave is never counted as absence | Generated `is_absent` requires `attendance_status = 'ABSENT'` |
+| Every payroll run pins the PIT policy applied | `payroll_runs.pit_policy_id`; mandatory before `CALCULATED` |
+| Every payslip is reproducible against its legal basis | `payslips.pit_policy_id` + `minimum_wage_rule_id` snapshots |
+| PIT brackets are contiguous and cover 0 → ∞ | Seed invariant checked by payroll engine before calculation |
 
 ### 6.2 Partitioning & Volume Guidance
 
@@ -1773,13 +1902,14 @@ ON CONFLICT (rule_code) DO NOTHING;
 | Item | Result |
 |---|---|
 | Parser | `libpg_query` via `pglast` 8.7 — the actual PostgreSQL 17 grammar (not a generic SQL linter) |
-| Statements parsed | 94 statements, **0 syntax errors** (32 tables, 27 indexes, 9 triggers, 5 functions, 2 `ALTER TABLE`) |
+| Statements parsed | 100 statements, **0 syntax errors** (35 tables, 27 indexes, 9 triggers, 5 functions, 2 `ALTER TABLE`) |
 | Baseline FK targets | `core_iam.users(id)`, `project_mgmt.projects(id)`, `project_mgmt.wbs_items(id)` all exist in `V1__init_schema.sql` |
 | Name collisions | No duplicate table, index, constraint or trigger names inside `workforce_mgmt` |
 | Cross-spec contract | Every TK credited by the payroll mapping (§9.2) is present in the SPEC-11 `chart_of_accounts` seed |
-| **Not yet done** | Live execution against PostgreSQL 17 (no server available in the authoring session). This remains a hard gate in §11.4, and the migration must be applied to a scratch DB before the spec is marked **Approved**. |
+| **Live execution (v1.2.0)** | **PASS** — PostgreSQL **17.11** @ `192.168.1.50`, throwaway DB `adb_ba_v120_check`: `V1`→`V5`, then SPEC-10 v1.2.0. After `V7`: **68 tables** cumulative, `workforce_mgmt` = **35 tables**; `pit_brackets` = 12 rows, `minimum_wage_rules` = 8 rows; `is_absent` generated column queryable. Cumulative **224 FK / 321 CHECK**. Database dropped after the run. |
+| Remaining release gate | Re-run `V7` through Flyway on an empty CI database before production sign-off; the scratch run above is evidence, not a substitute for the CI migration pipeline. |
 
-> The DDL is declared **structurally valid**, not yet **runtime-proven**. Do not upgrade this spec to Approved on the strength of the static parse alone.
+> The DDL is **structurally valid and runtime-proven** on PostgreSQL 17.11 (throwaway DB, 2026-10-21). Status stays **Review** until Lead sign-off and the CI Flyway run.
 
 ---
 
@@ -2025,6 +2155,7 @@ ON CONFLICT (rule_code) DO NOTHING;
   "includeUnapprovedAttendance": false,
   "allocationBasis": "ATTENDANCE_HOURS",
   "applyMinimumWageCheck": true,
+  "pitPolicyCode": "PIT_2026",
   "note": "Bảng lương tháng 10/2026 toàn công ty"
 }
 ```
@@ -2037,6 +2168,10 @@ ON CONFLICT (rule_code) DO NOTHING;
   "runNo": "PR-2026-10-R01",
   "payPeriod": "2026-10",
   "status": "CALCULATED",
+  "appliedPolicies": {
+    "pitPolicyCode": "PIT_2026",
+    "minimumWageRegions": ["I", "II"]
+  },
   "employeeCount": 214,
   "totals": {
     "grossPay": 6482500000.00,
@@ -2158,31 +2293,33 @@ ON CONFLICT (rule_code) DO NOTHING;
     "grossPay": 19021004.55
   },
   "deductions": {
-    "bhxhEmployee": 1200000.00,
+    "bhxhEmployee": 1575000.00,
     "bhytEmployee": 225000.00,
     "bhtnEmployee": 150000.00,
     "unionFee": 150000.00,
-    "pitAmount": 361450.68,
+    "pitAmount": 50800.23,
     "advanceDeduction": 0.00,
     "otherDeductions": 0.00,
-    "totalDeductions": 2086450.68
+    "totalDeductions": 1775800.23
   },
-  "netPay": 16934553.87,
+  "netPay": 17245204.32,
   "employerCost": {
     "bhxhEmployer": 2625000.00,
     "bhytEmployer": 450000.00,
     "bhtnEmployer": 150000.00,
-    "totalEmployerCost": 22245000.55
+    "totalEmployerCost": 22246004.55
   },
   "allocations": [
     { "projectCode": "ADB-BD-FACTORY-01", "wbsCode": "5.2", "percentage": 75.0, "amount": 14265753.41, "costElement": "622" },
-    { "projectCode": "ADB-LA-WAREHOUSE-02", "wbsCode": "3.1", "percentage": 25.0, "amount": 4755750.46, "costElement": "622" }
+    { "projectCode": "ADB-LA-WAREHOUSE-02", "wbsCode": "3.1", "percentage": 25.0, "amount": 4755251.14, "costElement": "622" }
   ],
   "status": "APPROVED",
   "audit": {
     "calculatedAt": "2026-10-30T22:14:02+07:00",
     "approvedAt": "2026-10-31T16:42:10+07:00",
     "approvedBy": "Trần Thị B (CHIEF_ACCOUNTANT)",
+    "pitPolicyCode": "PIT_2026",
+    "minimumWageRuleCode": "MW_2026_I",
     "journalEntryId": 55101
   }
 }
@@ -2257,6 +2394,8 @@ ON CONFLICT (rule_code) DO NOTHING;
 | 422 | `ALLOCATION_NOT_100_PERCENT` | Allocation sum ≠ 100% | Fix allocation |
 | 422 | `NEGATIVE_NET_PAY` | Deductions exceed gross | Carry forward |
 | 422 | `MINIMUM_WAGE_VIOLATION` | Base salary below regional floor | Adjust salary |
+| 422 | `PIT_POLICY_NOT_FOUND` | No effective PIT policy for the pay period | Configure `pit_policies` for that date range |
+| 409 | `PIT_POLICY_OVERLAP` | More than one PIT policy effective on the period date | Deactivate/close the overlapping policy |
 | 422 | `INVALID_STATE_TRANSITION` | Illegal status change | Refresh + follow workflow |
 | 403 | `PAYSLIP_ACCESS_DENIED` | Worker requested a payslip that is not their own | Request only your own payslip |
 | 422 | `DISPUTE_WINDOW_EXPIRED` | Dispute raised more than 7 days after the work date | Escalate to HR for an exception decision |

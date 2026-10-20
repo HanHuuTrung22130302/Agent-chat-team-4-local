@@ -167,5 +167,20 @@
 1. Maintain continuous multi-agent execution across Lead, BA, Dev, and Tester for advanced features (BIM 3D visual integration, automated monthly billing, sub-contractor portal).
 2. Monitor background tasks and keep physical agent daemons running with live health checks.
 
+---
 
+## Session: 2026-10-21 (TASK-025 — SPEC-10/SPEC-11 v1.2.0 Legal-Currency Hardening)
 
+### Summary
+- **SPEC-10 v1.2.0** — cập nhật luật 2026: Luật Thuế TNCN 109/2025/QH15 + NĐ 253/2026/NĐ-CP (5 bậc, giảm trừ 15,5tr/6,2tr, ăn ca 1,2tr); NĐ 293/2025/NĐ-CP (lương tối thiểu 5,31/4,73/4,14/3,70tr); NĐ 161/2026/NĐ-CP (lương cơ sở 2,53tr → trần BHXH 50,6tr); Luật BHXH 2024; TT 99/2025/TT-BTC.
+- Thêm 3 bảng cấu hình có hiệu lực theo ngày: `minimum_wage_rules`, `pit_policies`, `pit_brackets`; gắn `pit_policy_id`/`minimum_wage_rule_id` vào payroll để tái lập phiếu lương.
+- Sửa lỗi số học: AC-10-08 (OT 30 phút = 0,50h; 06:00–06:30 ngoài khung đêm), AC-10-16/17 (theo PIT 2026), thêm AC-10-29 (nghỉ giữa giờ không lương, trừ theo phần giao nhau), sửa `is_absent` để nghỉ phép không bị tính là vắng.
+- **SPEC-11 v1.2.0** — thay TT 200/2014 bằng TT 99/2025/TT-BTC (01/01/2026); làm rõ retention NĐ 06/2021 (3%–5% cho vốn đầu tư công) vs hợp đồng tư nhân/FIDIC 14.9; thêm OH-3 (phân bổ 627 khớp 100% pool).
+
+### Verification
+- `pglast` 8.7: SPEC-10 **100 câu lệnh**, SPEC-11 **87 câu lệnh**, 0 lỗi cú pháp.
+- **Live PostgreSQL 17.11** @ 192.168.1.50, DB tạm `adb_ba_v120_check`: V1→V5 → SPEC-10 → SPEC-11 = **PASS**; 92 bảng lũy kế (workforce_mgmt 35, accounting_mgmt 24), 224 FK, 321 CHECK; seed 12 PIT brackets + 8 minimum-wage rules; DB đã drop.
+- Cập nhật `docs/ai/CURRENT_STATE.md` (Module 10: 35 bảng, 29 AC; Module 11: TT 99/2025).
+
+### Remaining
+- Lead review/sign-off; CI Flyway run `V7`/`V8` on an empty database remains the release gate.

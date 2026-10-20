@@ -45,10 +45,10 @@
     - `HSEModule.tsx` with Permit To Work active permits (Hot Work, Working at Heights, Heavy Lifting), Near-miss incident tracking with 0 LTI safety milestone, and Toolbox meeting logs.
     - Specification: `docs/specs/SPEC-09-HSE-SAFETY-PTW.md` (21 tables, schema `hse_mgmt`, 15 User Stories, 20 Gherkin ACs, 40 REST APIs).
 12. **Module 10: Quản lý Nhân lực Hiện trường, Chấm công FaceID/GPS & Bảng lương**:
-    - Specification: `docs/specs/SPEC-10-WORKFORCE-ATTENDANCE.md` (32 tables, schema `workforce_mgmt`, `V7__create_workforce_tables.sql`, 22 User Stories, 28 Gherkin ACs, 30 REST APIs, US→AC coverage matrix, v1.1.0 review-hardened).
+    - Specification: `docs/specs/SPEC-10-WORKFORCE-ATTENDANCE.md` (35 tables, schema `workforce_mgmt`, `V7__create_workforce_tables.sql`, 22 User Stories, 29 Gherkin ACs, 30 REST APIs, US→AC coverage matrix, v1.2.0 hardened for 2026 labour/PIT law).
     - Features: Chấm công FaceID + GPS geofence chống gian lận, offline sync idempotent, phân loại lao động nặng nhọc độc hại (BLLĐ 2019 & TT 11/2020), trần OT (NQ 17/2022), tổ đội khoán (crew piece-rate), tính lương & hạch toán TK 622/338.
-13. **Module 11: Kế toán Quản trị Chi phí WIP (TK 154) & Doanh thu POC (TT 200/2014/TT-BTC & VAS 15)**:
-    - Specification: `docs/specs/SPEC-11-WIP-ACCOUNTING.md` (24 tables, schema `accounting_mgmt`, `V8__create_wip_accounting_tables.sql`, 24 User Stories, 28 Gherkin ACs, 35 REST APIs, US→AC coverage matrix).
+13. **Module 11: Kế toán Quản trị Chi phí WIP (TK 154) & Doanh thu POC (TT 99/2025/TT-BTC & VAS 15)**:
+    - Specification: `docs/specs/SPEC-11-WIP-ACCOUNTING.md` (24 tables, schema `accounting_mgmt`, `V8__create_wip_accounting_tables.sql`, 24 User Stories, 28 Gherkin ACs, 35 REST APIs, US→AC coverage matrix, v1.2.0 on the 2026 accounting regime).
     - Features: Tích lũy chi phí WIP (TK 1541-1547), tính & ghi nhận POC 3 phương pháp (Cost-to-cost, Survey, Milestone), hạch toán TK 337 (Contract Asset/Liability), trích lập lỗ dự kiến (VAS 15 đoạn 36), đối chiếu nghiệm thu FIDIC IPC Sub-Clause 14, chênh lệch tạm thời thuế TNDN.
 14. **Production Docker Deployment & Cloudflare Tunnel**:
     - Backend: `erp-adb-backend` (port 8085)

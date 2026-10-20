@@ -4,7 +4,7 @@
 > **Author**: BA Agent (PC-4 — `ba-hant_lap`)
 > **Task**: TASK-025 — "Dac ta Module 10 (Nhan luc & Cham cong GPS) va Module 11 (Ke toan Chi phi WIP D&B)"
 > **Status**: Review (chờ Lead duyệt)
-> **Version**: 1.1.0
+> **Version**: 1.2.0
 > **Date**: 2026-10-21
 > **Stack**: Java 21 + Spring Boot 3.3.x + PostgreSQL 17 + React 18 + TypeScript
 > **Target Enterprise**: Ánh Dương Building (ADB) — Tổng thầu Thiết kế & Thi công (D&B) Hạng I
@@ -22,6 +22,7 @@
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.2.0 | 2026-10-21 | BA Agent | **2026 accounting-regime update.** Replaced Thông tư 200/2014/TT-BTC with **Thông tư 99/2025/TT-BTC** (effective 01/01/2026) across the legal basis, chart of accounts and migration checklist; TT 200 is retained only for periods ≤ 2025. Clarified BILL-2 retention: NĐ 06/2021 3%–5% applies to works using public-investment capital, while private D&B contracts follow the contract and FIDIC 14.9; the 5% cap is now explicitly a contract parameter. Added OH-3 (627 allocation must total exactly 100% of the period pool, with rounding residue absorbed by the largest project). |
 | 1.1.0 | 2026-10-21 | BA Agent | Review fixes: seed TK 3382/3386/3335 (required by payroll postings from SPEC-10); add `created_at`/`updated_at` to `period_close_runs`; standardise error codes with the Gherkin ACs and DB triggers (`COST_OF_SALES_EXCEEDS_INCURRED`, `NEGATIVE_WIP_REQUIRES_ACCRUAL`, `POC_VS_CERTIFIED_VARIANCE_REQUIRES_EXPLANATION`, `DUPLICATE_COST_POSTING`, `POSTED_ENTRY_IMMUTABLE`, `POSTED_POC_IMMUTABLE`, `TRIAL_BALANCE_MISMATCH`, `WIP_RECONCILIATION_MISMATCH`, `JOURNAL_MUST_BE_POSTED_AFTER_LINES`); AC-11-25…AC-11-28 added and US→AC coverage matrix (§2.1) added; DDL parse record added (§6.3). |
 | 1.0.0 | 2026-10-21 | BA Agent | Initial issue for Lead review. |
 
@@ -53,7 +54,7 @@ ADB vận hành **một sổ cái, hai góc nhìn**:
 | Góc nhìn | Mục đích | Cơ sở | Tần suất |
 |---|---|---|---|
 | **Kế toán quản trị (management accounting)** | Lãi/lỗ theo dự án, WIP, dòng tiền, cảnh báo sớm | POC, EAC, chi phí cam kết | Hàng tuần / theo kỳ |
-| **Kế toán tài chính (statutory)** | Báo cáo tài chính, thuế, kiểm toán | TT 200/2014/TT-BTC, VAS 15, hóa đơn, nghiệm thu | Hàng tháng / quý / năm |
+| **Kế toán tài chính (statutory)** | Báo cáo tài chính, thuế, kiểm toán | TT 99/2025/TT-BTC, VAS 15, hóa đơn, nghiệm thu | Hàng tháng / quý / năm |
 | **Kế toán thuế (tax)** | Thuế TNDN, GTGT | Doanh thu theo nghiệm thu/hóa đơn, chi phí đủ điều kiện | Hàng quý / năm |
 
 Sai lầm phổ biến là dùng **một** con số doanh thu cho cả ba. SPEC-11 tách bạch:
@@ -66,10 +67,10 @@ Sai lầm phổ biến là dùng **một** con số doanh thu cho cả ba. SPEC-
 | Instrument | Scope applied | Key obligations applied |
 |---|---|---|
 | **Luật Kế toán 2015** (Luật 88/2015/QH13) | Chứng từ, sổ kế toán, kỳ kế toán, lưu trữ | Chứng từ phải có đủ nội dung; sổ kế toán phản ánh đầy đủ nghiệp vụ; lưu trữ tài liệu kế toán **10 năm**; kỳ kế toán năm |
-| **Thông tư 200/2014/TT-BTC** | Chế độ kế toán doanh nghiệp | TK 154 (chi phí sản xuất, kinh doanh dở dang); TK 621/622/623/627 (chi phí sản xuất); TK 632 (giá vốn); TK 511 (doanh thu); TK 337 (thanh toán theo tiến độ kế hoạch hợp đồng xây dựng); TK 131 (phải thu khách hàng); TK 3331 (VAT đầu ra) |
+| **Thông tư 99/2025/TT-BTC** (hiệu lực 01/01/2026, thay TT 200/2014/TT-BTC) | Chế độ kế toán doanh nghiệp | TK 154 (chi phí sản xuất, kinh doanh dở dang); TK 621/622/623/627 (chi phí sản xuất); TK 632 (giá vốn); TK 511 (doanh thu); TK 337 (thanh toán theo tiến độ kế hoạch hợp đồng xây dựng); TK 131 (phải thu khách hàng); TK 3331 (VAT đầu ra). Kỳ kế toán trước 01/01/2026 vẫn đối chiếu theo TT 200/2014/TT-BTC |
 | **VAS 15 — Hợp đồng xây dựng** (ban hành kèm Quyết định 165/2002/QĐ-BTC) | Ghi nhận doanh thu, chi phí hợp đồng xây dựng | Đoạn 30–31: doanh thu và chi phí ghi nhận theo **tỷ lệ phần trăm công việc hoàn thành** khi kết quả ước tính đáng tin cậy; các phương pháp xác định POC (tỷ lệ chi phí thực tế/tổng chi phí dự toán, khảo sát khối lượng, đo lường công việc hoàn thành); đoạn 36: **lỗ dự kiến phải ghi nhận ngay** |
 | **VAS 14 — Doanh thu và thu nhập khác** | Nguyên tắc doanh thu | Điều kiện ghi nhận doanh thu; nguyên tắc phù hợp chi phí |
-| **Nghị định 06/2021/NĐ-CP** | Quản lý chất lượng, nghiệm thu, bàn giao, bảo hành | Biên bản nghiệm thu công việc/hạng mục/công trình; mức giữ lại bảo hành **3%–5%** giá trị hợp đồng; thời hạn bảo hành |
+| **Nghị định 06/2021/NĐ-CP** | Quản lý chất lượng, nghiệm thu, bàn giao, bảo hành | Biên bản nghiệm thu công việc/hạng mục/công trình; mức giữ lại bảo hành **3%–5%** giá trị hợp đồng đối với công trình sử dụng vốn đầu tư công; thời hạn bảo hành. Hợp đồng D&B tư nhân áp dụng mức giữ lại theo hợp đồng và FIDIC 14.9 |
 | **FIDIC Yellow Book 2017 (D&B)** | Hợp đồng tổng thầu | Sub-Clause 12 (Measurement), 13 (Variations and Adjustments), 14.3 (Application for Interim Payment Certificates), 14.6 (Interim Payment Certificates), 14.7 (Payment), 14.8 (Delayed Payment), 14.9 (Release of Retention Money), 14.10–14.12 (Statement at Completion / Final Statement), Clause 20 (Claims) |
 | **Thông tư 12/2021/TT-BXD** | Định mức xây dựng | Cơ sở xây dựng **EAC** (tổng chi phí dự toán còn lại) và định mức chi phí để kiểm soát vượt |
 | **Luật Thuế GTGT** + **Nghị định 123/2020/NĐ-CP** + **Thông tư 78/2021/TT-BTC** | Hóa đơn điện tử, thuế GTGT | Thời điểm lập hóa đơn, ký hiệu/mẫu số, VAT 8%/10% theo quy định từng thời kỳ |
@@ -101,7 +102,7 @@ Sai lầm phổ biến là dùng **một** con số doanh thu cho cả ba. SPEC-
 
 | ID | Role | User Story | Ref |
 |---|---|---|---|
-| US-11-01 | Kế toán trưởng (Chief Accountant) | As a **Chief Accountant**, I want a **chart of accounts aligned to Circular 200/2014**, so that every transaction maps to a legal account. | §6.1 |
+| US-11-01 | Kế toán trưởng (Chief Accountant) | As a **Chief Accountant**, I want a **chart of accounts aligned to Circular 99/2025/TT-BTC**, so that every transaction maps to a legal account. | §6.1 |
 | US-11-02 | Kế toán tổng hợp (GL Accountant) | As a **GL Accountant**, I want **material, labour, equipment and subcontract costs posted automatically to 621/622/623/627 by project and WBS**, so that I do not re-key data from five modules. | §3.1, §9 |
 | US-11-03 | GL Accountant | As a **GL Accountant**, I want **duplicate source documents rejected idempotently**, so that a retried integration never double-counts cost. | §3.1, §6.8 |
 | US-11-04 | Kỹ sư QS | As a **QS Engineer**, I want to **record approved measurement quantities with the NĐ 06 acceptance record**, so that revenue has documentary evidence, not an estimate. | §3.3, §6.11 |
@@ -342,7 +343,7 @@ vat_amount                 = net_before_vat × vat_rate
 total_incl_vat             = net_before_vat + vat_amount
 ```
 
-**Rule BILL-2 (Retention cap)**: Default 5%, hard-capped at **5% of the contract value** (NĐ 06/2021 range 3%–5%). A rate outside 0–5 is rejected with **422 `RETENTION_RATE_OUT_OF_RANGE`**.
+**Rule BILL-2 (Retention)**: Retention is a **contract parameter**, not a universal statutory rate. `retention_rate` defaults to 5% and `retention_cap_rate` is the contractually agreed cap (default 5%). For works using **public-investment capital**, NĐ 06/2021/NĐ-CP fixes the retention level within **3%–5%** of the contract value. For private D&B contracts the rate follows the contract; FIDIC 14.9 (Yellow Book 2017) is the reference for withholding and release. A rate outside `0 ≤ rate ≤ retention_cap_rate` (ADB policy ceiling 5%) is rejected with **422 `RETENTION_RATE_OUT_OF_RANGE`**. The engine never applies 3%–5% automatically to a private contract.
 
 **Rule BILL-3 (Advance recovery)**: Recovery starts at the first IPC and must complete by **80% completion**. Over-recovery is rejected with **422 `ADVANCE_OVER_RECOVERY`**. The outstanding advance is never allowed to go negative.
 
@@ -507,7 +508,7 @@ balance_337 = billed_cumulative_ex_vat − cumulative_revenue_recognized
 
 ```
 retention_per_ipc = MIN(gross × retention_rate, retention_cap − cumulative_retention)
-retention_cap      = contract_value × retention_cap_rate     -- 5% mặc định, tối đa 5%
+retention_cap      = contract_value × retention_cap_rate     -- tham số hợp đồng, mặc định 5%
 advance_recovery   = MIN(advance_outstanding, gross × advance_recovery_rate)
 advance_outstanding = advance_amount − recovered_to_date
 ```
@@ -542,6 +543,8 @@ projected_margin = (contract_revenue − current_eac) / contract_revenue × 100
 **Rule OH-1**: The allocation basis is fixed at the start of the fiscal year and disclosed. Changing it mid-year requires CFO approval.
 
 **Rule OH-2**: 627 allocated to a project is added to `wip_period_balances.additions_overhead_627` and participates in the 154 transfer.
+
+**Rule OH-3 (Completeness)**: The sum of allocated 627 across projects must equal the **period 627 pool exactly** (`Σ allocated = pool`, tolerance 0 VND). Any rounding residue is absorbed by the project with the largest allocation, so the pool never leaves an unallocated balance in 627 at close. A driver total of zero, or a split that does not reconcile to the pool, is rejected with **422 `ALLOCATION_NOT_100_PERCENT`** / **422 `ALLOCATION_AMOUNT_MISMATCH`** and blocks the close step (`CLOSE_CHECKLIST_FAILED`).
 
 ### 4.10 Tax Reconciliation
 
@@ -895,7 +898,7 @@ BEGIN
 END;
 $$;
 
--- ── 1. Hệ thống tài khoản (Thông tư 200/2014/TT-BTC) ────────────────────
+-- ── 1. Hệ thống tài khoản (Thông tư 99/2025/TT-BTC) ─────────────────────
 CREATE TABLE IF NOT EXISTS accounting_mgmt.chart_of_accounts (
     id BIGSERIAL PRIMARY KEY,
     account_code VARCHAR(20) UNIQUE NOT NULL,
@@ -1856,6 +1859,7 @@ ON CONFLICT (rule_code) DO NOTHING;
 |---|---|
 | Cost posting idempotent | `UNIQUE (source_module, source_document_type, source_document_id, source_line_no, cost_element)` |
 | Cost allocation totals 100% | Deferred constraint trigger `trg_cost_allocation_total` |
+| 627 pool fully allocated at close | Rule OH-3 + close checklist step (`ALLOCATION_AMOUNT_MISMATCH` blocks the close) |
 | Journal debit = credit | `trg_journal_balance` at posting + `chk_journal_posted_balance` |
 | One-sided journal lines | `chk_journal_line_one_side` |
 | Posted entries immutable | `trg_block_posted_journal`, `trg_block_posted_journal_line` |
@@ -1863,7 +1867,7 @@ ON CONFLICT (rule_code) DO NOTHING;
 | Approved VO drives contract value | `trg_sync_variation_total` + generated `current_contract_value` |
 | POC arithmetic consistency | `chk_poc_revenue_delta`, `chk_poc_cos_delta`, `chk_poc_gross_profit`, `chk_poc_wip` |
 | WIP roll-forward | Generated `closing_balance_154` from opening + additions − COS |
-| Retention ≤ 5% | `CHECK (retention_rate BETWEEN 0 AND 5)` + `chk_retention_cap` |
+| Retention within contract parameters | `CHECK (retention_rate BETWEEN 0 AND 5)` + `chk_retention_cap` (public works: NĐ 06/2021 3%–5%; private: contract/FIDIC 14.9) |
 | Advance never negative | `chk_advance_recovery` + generated `outstanding` |
 | Billing net + VAT = total | `chk_billing_total` |
 | Invoice arithmetic | `chk_invoice_total` |
@@ -1888,9 +1892,10 @@ Closing a period is a **database transaction with a checklist**, not a button th
 | Baseline FK targets | `core_iam.users(id)`, `project_mgmt.projects(id)`, `project_mgmt.wbs_items(id)` all exist in `V1__init_schema.sql` |
 | Name collisions | No duplicate table, index, constraint or trigger names inside `accounting_mgmt` |
 | Seed integrity | `chart_of_accounts` seed has 44 accounts; every `VALUES` row matches its 9 declared columns |
-| **Not yet done** | Live execution against PostgreSQL 17 (no server available in the authoring session). This remains a hard gate in §11.4, and the migration must be applied to a scratch DB before the spec is marked **Approved**. |
+| **Live execution (v1.2.0)** | **PASS** — PostgreSQL **17.11** @ `192.168.1.50`, throwaway DB `adb_ba_v120_check`: `V1`→`V5`, SPEC-10 v1.2.0, then SPEC-11 v1.2.0. After `V8`: **92 tables** cumulative, `accounting_mgmt` = **24 tables**; cumulative **224 FK / 321 CHECK**. Database dropped after the run. |
+| Remaining release gate | Re-run `V8` through Flyway on an empty CI database before production sign-off; the scratch run above is evidence, not a substitute for the CI migration pipeline. |
 
-> The DDL is declared **structurally valid**, not yet **runtime-proven**. Do not upgrade this spec to Approved on the strength of the static parse alone.
+> The DDL is **structurally valid and runtime-proven** on PostgreSQL 17.11 (throwaway DB, 2026-10-21). Status stays **Review** until Lead sign-off and the CI Flyway run.
 
 ## 7. REST API Specification
 
@@ -2828,7 +2833,7 @@ The API returns the **signed** value and a human-readable `presentation`; the UI
 | 409 | `TRIAL_BALANCE_MISMATCH` | Sum of debits ≠ sum of credits for the period | Inspect unbalanced journals before closing |
 | 422 | `CONTRACT_VALUE_MISSING` | No approved contract value | Complete the financial profile |
 | 422 | `VARIATION_NOT_APPROVED` | VO included before approval | Approve the VO first |
-| 422 | `RETENTION_RATE_OUT_OF_RANGE` | Rate outside 0–5% | Use 3–5% per NĐ 06/2021 |
+| 422 | `RETENTION_RATE_OUT_OF_RANGE` | Rate outside the contract range / ADB 0–5% ceiling | Set the rate per contract (public works: NĐ 06/2021 3%–5%; private: FIDIC 14.9) |
 | 422 | `RETENTION_CAP_EXCEEDED` | Cumulative retention > 5% of contract | Reduce the withheld amount |
 | 422 | `ADVANCE_OVER_RECOVERY` | Recovery > outstanding advance | Cap at outstanding |
 | 422 | `ADVANCE_RECOVERY_AFTER_THRESHOLD` | Recovery continues past 80% completion | Reconcile the advance |
@@ -3293,7 +3298,7 @@ These are the controls an auditor will test. Each maps to a close-checklist step
 
 - [x] V1 `core_iam.users`, `project_mgmt.projects`, `project_mgmt.wbs_items`
 - [x] V1 `estimating_costing.boq_items` (logical FK for measurements)
-- [x] Chart of accounts seeds (TT 200/2014) included in V8
+- [x] Chart of accounts seeds (TT 99/2025/TT-BTC) included in V8
 - [ ] SPEC-03 BOQ approval workflow (contract quantity and unit price source)
 - [ ] SPEC-04 subcontractor PPC approval (TK 627/1547 cost source)
 - [ ] SPEC-06 equipment shift costing (TK 623 source)
