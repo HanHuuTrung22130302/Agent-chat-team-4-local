@@ -110,4 +110,35 @@
 3. Developer hiện thực `V7` + `V8` cùng package `com.anhduongbuilding.erp.workforce` / `.accounting`; ưu tiên cost ingestion idempotent và POC cost-to-cost.
 4. Tester xây golden dataset 12 kỳ-dự án (gồm 1 dự án lỗ dự kiến, 1 dự án survey) đối chiếu Excel do Kế toán trưởng ký.
 
+---
+
+## Session: 2026-10-21 (Production Tier-1 EPC Command Center Overhaul & BA Unblocking)
+
+### Summary
+- **Unblocked BA Agent & Engine Resilience**:
+  - Diagnosed TASK-025 & TASK-032 hang: Windows non-TTY stdin pipe deadlock and expired OpenCode API key.
+  - Refactored `agentforge/agent/engines.py`: added `stdin=subprocess.DEVNULL`, `--auto` parameter, 180s timeout, and immediate auto-fallback to `AntigravityEngine (gemini-3.8-flash-high)`.
+  - Upgraded `agentforge/agent/agent_daemon.py`: automated `git pull --rebase origin main` before executing any task.
+  - Unblocked TASK-032 via Hub reset API (`/api/tasks/TASK-032/reset`) and restarted `agentforge-hub`. All 4 physical cluster agents (`lead-hantpc`, `ba-hant_lap`, `developer-desktop-cgqq2oo`, `tester-desktop-khkher1`) are 100% online, healthy, and idle.
+- **Frontend Complete Rebuild (Autodesk / Procore Grade EPC Command Center)**:
+  - Eliminated the low-density static UI.
+  - Rebuilt `frontend/src/` with Light/Dark mode switcher (`Header.tsx` & `App.tsx`).
+  - Implemented high-density Executive Command Center (`ProjectDashboard.tsx`):
+    - Real interactive S-Curve SVG chart (Planned Value vs Actual Progress vs Earned Value with hover tooltips).
+    - Multi-phase mini-Gantt milestone progression cards.
+    - Weather forecast radar (temperature, rain probability, wind speed) and Tower Crane Operating Radar (wind safety limit < 14 m/s).
+    - Quick Action approval drawers and slide-overs.
+  - Completed modules:
+    - Module 10 & 11 (`WorkforceWIPModule.tsx`): GPS FaceID attendance with geofence validation & WIP percentage of completion revenue recognition per Circular 200.
+    - Module 12 (`FidicClaimsVOModule.tsx`): FIDIC Clause 20.1 28-day notice rule tracking & Variation Orders workflow.
+- **Deployment & Cloudflare Tunnel Verification**:
+  - Built & deployed `erp-adb-frontend` Docker container on Ubuntu Server `192.168.1.50`.
+  - Verified live access via Cloudflare tunnel: `https://resolved-commander-price-reduces.trycloudflare.com` (HTTP 200 OK).
+  - Pushed all tools, documentation, and code changes to both repositories: `Agent-chat-team-4-local.git` and `Erp-ADB-Building.git`.
+
+### Next Recommended Actions
+1. Maintain continuous multi-agent execution across Lead, BA, Dev, and Tester for advanced features (BIM 3D visual integration, automated monthly billing, sub-contractor portal).
+2. Monitor background tasks and keep physical agent daemons running with live health checks.
+
+
 
