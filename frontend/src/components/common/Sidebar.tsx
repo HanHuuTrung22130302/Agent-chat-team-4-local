@@ -43,34 +43,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab, isDark
     {
       title: 'DỰ ÁN & HIỆN TRƯỜNG',
       items: [
-        { key: 'projects' as TabKey, label: '01. Tổng quan & S-Curve', icon: FolderKanban, color: 'text-blue-500' },
-        { key: 'wbs' as TabKey, label: '01. Cây Phân rã WBS', icon: Layers, color: 'text-indigo-500' },
-        { key: 'diary' as TabKey, label: '02. Nhật ký Hiện trường', icon: Calendar, color: 'text-emerald-500' },
-        { key: 'qaqc' as TabKey, label: '08. Chất lượng QA/QC', icon: FileCheck2, color: 'text-teal-500' },
-        { key: 'hse' as TabKey, label: '09. An toàn Lao động HSE', icon: ShieldCheck, color: 'text-rose-500' },
+        { key: 'projects' as TabKey, label: 'Tổng quan & Tiến độ S-Curve', icon: FolderKanban, color: 'text-blue-500' },
+        { key: 'wbs' as TabKey, label: 'Cây phân rã công việc (WBS)', icon: Layers, color: 'text-indigo-500' },
+        { key: 'diary' as TabKey, label: 'Nhật ký công trường điện tử', icon: Calendar, color: 'text-emerald-500' },
+        { key: 'qaqc' as TabKey, label: 'Kiểm soát chất lượng QA/QC', icon: FileCheck2, color: 'text-teal-500' },
+        { key: 'hse' as TabKey, label: 'An toàn lao động & Cấp phép HSE', icon: ShieldCheck, color: 'text-rose-500' },
       ]
     },
     {
       title: 'DỰ TOÁN & THẦU PHỤ',
       items: [
-        { key: 'boq' as TabKey, label: '03. BOQ & Quản trị EVM', icon: Activity, color: 'text-cyan-500' },
-        { key: 'subcontractors' as TabKey, label: '04. Thầu phụ & FIDIC PPC', icon: Users, color: 'text-amber-500' },
-        { key: 'claims' as TabKey, label: '12. FIDIC Claims & Phát sinh VO', icon: AlertCircle, color: 'text-orange-500' },
+        { key: 'boq' as TabKey, label: 'Dự toán BOQ & Quản trị EVM', icon: Activity, color: 'text-cyan-500' },
+        { key: 'subcontractors' as TabKey, label: 'Thầu phụ & Thanh toán PPC', icon: Users, color: 'text-amber-500' },
+        { key: 'claims' as TabKey, label: 'Khiếu nại FIDIC & Phát sinh VO', icon: AlertCircle, color: 'text-orange-500' },
       ]
     },
     {
       title: 'CUNG ỨNG & SẢN XUẤT',
       items: [
-        { key: 'inventory' as TabKey, label: '05. Vật tư & Kho (TT 12)', icon: Boxes, color: 'text-teal-500' },
-        { key: 'equipment' as TabKey, label: '06. Đội Xe máy & Ca máy', icon: Truck, color: 'text-orange-500' },
-        { key: 'winsteel' as TabKey, label: '07. Nhà máy Thép WinSteel', icon: Factory, color: 'text-purple-500' },
+        { key: 'inventory' as TabKey, label: 'Kho vật tư & Định mức TT 12', icon: Boxes, color: 'text-teal-500' },
+        { key: 'equipment' as TabKey, label: 'Đội xe máy & Nhiên liệu ca máy', icon: Truck, color: 'text-orange-500' },
+        { key: 'winsteel' as TabKey, label: 'Nhà máy kết cấu thép WinSteel', icon: Factory, color: 'text-purple-500' },
       ]
     },
     {
       title: 'TÀI CHÍNH & NHÂN SỰ',
       items: [
-        { key: 'workforce' as TabKey, label: '10. Chấm công GPS FaceID', icon: Clock, color: 'text-sky-500' },
-        { key: 'wip' as TabKey, label: '11. Kế toán Chi phí WIP (TT 200)', icon: CircleDollarSign, color: 'text-emerald-500' },
+        { key: 'workforce' as TabKey, label: 'Chấm công GPS & Sinh trắc học', icon: Clock, color: 'text-sky-500' },
+        { key: 'wip' as TabKey, label: 'Kế toán chi phí dở dang & POC', icon: CircleDollarSign, color: 'text-emerald-500' },
       ]
     }
   ];
