@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: erp-adb-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://192.168.1.50:5432/adb_erp}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:1}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: public,core_iam,project_mgmt,estimating_costing
+    locations: classpath:db/migration
+
+# Security & JWT Configuration
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:anhduongbuildingsecretkeyforjwttokengeneration2026verysecure}
+    access-token-expiration-ms: 86400000 # 24 Hours
+    refresh-token-expiration-ms: 604800000 # 7 Days
+
+# OpenAPI / Swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method

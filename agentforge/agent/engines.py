@@ -51,19 +51,29 @@ def find_agy_executable() -> str:
     return "agy"
 
 def find_opencode_executable() -> str:
-    """Finds opencode CLI across standard Windows / npm paths."""
-    found = shutil.which("opencode") or shutil.which("opencode.cmd") or shutil.which("opencode.exe")
-    if found:
-        return found
-
+    """Finds opencode CLI across standard Windows / npm paths, preferring direct .exe over .cmd."""
     user_profile = os.environ.get("USERPROFILE", "")
     local_app_data = os.environ.get("LOCALAPPDATA", "")
     app_data = os.environ.get("APPDATA", "")
+    
+    # Check for direct .exe inside npm first (avoids cmd.exe newline parsing issues on Windows)
+    npm_exe_candidates = [
+        os.path.join(user_profile, "AppData", "Roaming", "npm", "node_modules", "opencode-ai", "bin", "opencode.exe"),
+        os.path.join(app_data, "npm", "node_modules", "opencode-ai", "bin", "opencode.exe"),
+        os.path.join(local_app_data, "opencode", "bin", "opencode.exe"),
+        os.path.join(user_profile, ".local", "bin", "opencode.exe"),
+    ]
+    for c in npm_exe_candidates:
+        if os.path.isfile(c):
+            return c
+
+    found = shutil.which("opencode.exe") or shutil.which("opencode") or shutil.which("opencode.cmd")
+    if found:
+        return found
+
     candidates = [
         os.path.join(user_profile, "AppData", "Roaming", "npm", "opencode.cmd"),
         os.path.join(app_data, "npm", "opencode.cmd"),
-        os.path.join(local_app_data, "opencode", "bin", "opencode.exe"),
-        os.path.join(user_profile, ".local", "bin", "opencode.exe"),
         os.path.join(user_profile, ".local", "bin", "opencode")
     ]
     for c in candidates:
@@ -81,14 +91,16 @@ class OpenCodeEngine:
     def execute(self, prompt: str, model: str = None) -> str:
         target_model = model or self.default_model
         logger.info(f"OpenCode executing with model [{target_model}] using binary [{self.cmd}]...")
+        use_shell = not self.cmd.lower().endswith(".exe") if IS_WINDOWS else False
+        clean_prompt = prompt if not use_shell else prompt.replace("\r\n", " ").replace("\n", " ")
         try:
             result = subprocess.run(
-                [self.cmd, "run", "-m", target_model, prompt],
+                [self.cmd, "run", "-m", target_model, clean_prompt],
                 capture_output=True,
                 encoding="utf-8",
                 errors="replace",
                 timeout=300,
-                shell=IS_WINDOWS
+                shell=use_shell
             )
             output = (result.stdout or "").strip()
             err_msg = (result.stderr or "").strip() or output
@@ -102,12 +114,12 @@ class OpenCodeEngine:
                 if target_model != self.fallback_model:
                     logger.info(f"==> Auto-fallback to FREE model [{self.fallback_model}] to keep workflow running...")
                     fallback_result = subprocess.run(
-                        [self.cmd, "run", "-m", self.fallback_model, prompt],
+                        [self.cmd, "run", "-m", self.fallback_model, clean_prompt],
                         capture_output=True,
                         encoding="utf-8",
                         errors="replace",
                         timeout=300,
-                        shell=IS_WINDOWS
+                        shell=use_shell
                     )
                     fb_out = (fallback_result.stdout or "").strip()
                     if fallback_result.returncode == 0:
@@ -146,14 +158,16 @@ class AntigravityEngine:
     def execute(self, prompt: str, model: str = None) -> str:
         target_model = model or self.default_model
         logger.info(f"Antigravity executing with model [{target_model}] using binary [{self.cmd}]...")
+        use_shell = not self.cmd.lower().endswith(".exe") if IS_WINDOWS else False
+        clean_prompt = prompt if not use_shell else prompt.replace("\r\n", " ").replace("\n", " ")
         try:
             result = subprocess.run(
-                [self.cmd, "-p", prompt, "--model", target_model, "--dangerously-skip-permissions"],
+                [self.cmd, "-p", clean_prompt, "--model", target_model, "--dangerously-skip-permissions"],
                 capture_output=True,
                 encoding="utf-8",
                 errors="replace",
                 timeout=300,
-                shell=IS_WINDOWS
+                shell=use_shell
             )
             output = (result.stdout or "").strip()
             err_msg = (result.stderr or "").strip() or output
@@ -169,12 +183,12 @@ class AntigravityEngine:
                         continue
                     logger.info(f"==> Auto-fallback to [{fb}]...")
                     fallback_result = subprocess.run(
-                        [self.cmd, "-p", prompt, "--model", fb, "--dangerously-skip-permissions"],
+                        [self.cmd, "-p", clean_prompt, "--model", fb, "--dangerously-skip-permissions"],
                         capture_output=True,
                         encoding="utf-8",
                         errors="replace",
                         timeout=300,
-                        shell=IS_WINDOWS
+                        shell=use_shell
                     )
                     fb_out = (fallback_result.stdout or "").strip()
                     if fallback_result.returncode == 0 and not is_quota_error(fb_out):
