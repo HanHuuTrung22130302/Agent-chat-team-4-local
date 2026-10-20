@@ -6,68 +6,53 @@
 
 | Field | Value |
 |---|---|
-| Phase | **Continuous Autonomous Evolution Loop (Active)** |
+| Phase | **Continuous Autonomous Evolution Loop (Active - Assembly Line)** |
 | Scope | Full 12-Module Enterprise D&B ERP (Ánh Dương Building) |
 | Architecture | Java 21 + Spring Boot 3 + PostgreSQL + React 18 TS |
 | Repositories | `Erp-ADB-Building.git` (Full product + tool + docs) & `Agent-chat-team-4-local.git` (Platform) |
+| Live Public URL | `https://resolved-commander-price-reduces.trycloudflare.com` |
 | Last updated | 2026-10-20 |
 
 ---
 
 ## Status Summary
 
-### ✅ Completed
+### ✅ Completed Modules & Architecture
 
-- [x] Company research & requirements gathering (ADB profile, Grade I D&B general contractor)
-- [x] Platform Hub & Real-time Web Dashboard deployed on Ubuntu Server (`http://192.168.1.50:8000`)
-- [x] Agent Daemons verified & online on all 4 physical machines (Lead, BA, Dev, Tester)
-- [x] Strict budget protection locked (100% Free models: `gemini-3.8-flash-high`, `deepseek-v4.1-flash-free`)
-- [x] Master Autonomous Roadmap established (`docs/plans/MASTER_ROADMAP.md`)
-- [x] Core IAM Spec written (`docs/specs/SPEC-01-CORE-IAM.md`)
-- [x] Project Management & WBS Spec written (`docs/specs/SPEC-02-PROJECTS-WBS.md`)
-- [x] BOQ Estimating & Job Costing Spec written (`docs/specs/SPEC-03-BOQ-COSTING.md`)
-- [x] **Module 04: Subcontractors & FIDIC PPC** written (`docs/specs/SPEC-04-SUBCONTRACTORS.md`)
-- [x] **Module 05: Materials & Site Warehouse** written (`docs/specs/SPEC-05-MATERIALS-WAREHOUSE.md`)
-- [x] **Module 03: BOQ Estimating & EVM Analysis** implemented in Spring Boot 3 (`com.anhduongbuilding.erp.boq`)
-- [x] **Live Production Deployment via Docker & Cloudflare Tunnel**:
-  - `erp-adb-backend`: Spring Boot 3.3.4 running on port `8085` connected to PostgreSQL `adb_erp`
-  - `erp-adb-frontend`: React 18 TS + Vite + Nginx running on port `3000`
-  - `cf-tunnel-erpadb`: Cloudflare Tunnel live at `https://resolved-commander-price-reduces.trycloudflare.com`
-- [x] **Concurrent Multi-Agent Execution**: Successfully dispatched and executed concurrent tasks across BA (`ba-hant_lap`), Developer (`developer-desktop-cgqq2oo`), and Tester (`tester-desktop-khkher1`).
-- [x] **Backend Implementation (Java 21 + Spring Boot 3)**:
-  - Flyway DDL `V1__init_schema.sql` (Core IAM, Project Management, BOQ)
-  - Flyway DDL `V2__subcontractor_and_ppc.sql` (Subcontractors, Subcontracts, Payment Certificates, Backcharges)
-  - Spring Boot JPA Entities, Repositories, Services, and REST Controllers for Project WBS, Site Diary, Subcontractors, and PPC
-  - Automated test suites: `ProjectServiceTest.java`, `SubcontractorServiceTest.java` (JUnit 5 + Mockito)
-- [x] **Frontend Implementation (React 18 + TypeScript + Vite + Tailwind CSS)**:
-  - Project Portfolio Dashboard & Contract Values
-  - Interactive WBS Progress Tracker
-  - Digital Site Diary (Nghị định 06/2021/NĐ-CP)
-  - Subcontractor Directory & FIDIC PPC Certificate Inspector
-- [x] **Platform Engine Resolution**: Fixed Windows subprocess cmd.exe newline argument parsing via direct `.exe` binary discovery and `use_shell=False`.
+1. **Enterprise Architecture Roadmap**: `docs/plans/ENTERPRISE_ARCHITECTURE_ROADMAP.md` covering all 12 modules for Ánh Dương Building D&B EPC.
+2. **Module 01: Project Management & WBS**: Core Entity, DDL V1, REST API, WBS 4-level hierarchy.
+3. **Module 02: Digital Site Diary**: Daily logs, weather, manpower, safety notes (Nghị định 06/2021/NĐ-CP).
+4. **Module 03: BOQ Estimating & EVM Analysis**: Earned Value Management (BAC, PV, EV, AC, CPI, SPI, EAC), unit rates, and `JobCostingEVMTest.java`.
+5. **Module 04: Subcontractor & FIDIC PPC**: Advance payments, 5% retention, backcharges, VAT 8%, and `SubcontractorServiceTest.java`.
+6. **Module 05: Material Procurement & Warehouse**:
+   - Spec: `SPEC-05-MATERIALS-WAREHOUSE.md`
+   - Flyway: `V3__inventory_and_procurement.sql`
+   - Backend: `com.anhduongbuilding.erp.inventory` (MR, PO, GRN, GIN, Stock balances)
+   - Tests: `MaterialNormReconciliationTest.java` (Circular 12/2021 norm reconciliations: Steel <= 2.5%, Concrete <= 1.5%, Aggregates <= 3.0%).
+7. **Module 06: Heavy Equipment & Machinery Fleet**:
+   - Spec: `SPEC-06-EQUIPMENT-FLEET.md`
+   - Flyway: `V4__equipment_and_fleet.sql`
+   - Backend: `com.anhduongbuilding.erp.equipment` (Equipments, Mobilization orders, Engine hour logs, Diesel norm)
+   - Tests: `EquipmentFuelNormTest.java` (Circular 12/2021 diesel consumption variance > 5% / > 15%, safety inspection expiry alert <= 30 days).
+8. **Module 07: WinSteel Pre-Engineered Steel Factory**:
+   - Spec: `SPEC-07-WINSTEEL-FACTORY.md`
+   - Flyway: `V5__winsteel_factory.sql`
+   - Backend: `com.anhduongbuilding.erp.winsteel` (BOM components, 5-stage shopline, Nesting plan scrap < 3%, QR site erection)
+   - Tests: `WinSteelNestingTest.java` (Nesting optimization approval, scrap rate threshold, QR site erection).
+9. **React 18 TypeScript Frontend**:
+   - Full 8-tab interactive navigation in `App.tsx` (Projects, WBS, Diary, BOQ & EVM, Subcontractors & FIDIC PPC, Inventory & Warehouse, Equipment Fleet, WinSteel Factory).
+10. **Platform Autonomous Assembly Line**:
+   - Continuous task scheduler in `agentforge/hub/app.py`: Automatically auto-dispatches pending queue tasks as soon as matching agents become idle.
+   - All 4 physical nodes concurrently integrated and cooperating in real-time.
 
 ---
 
-### ⏳ Autonomous Evolution Pipeline
-
-1. **Cycle 1**: Core IAM & Project Management & Site Diary ✅ (Done)
-2. **Cycle 2**: Subcontractor Management & Progress Payment Certificates (PPC) ✅ (Done)
-3. **Cycle 3**: BOQ Estimating, Vietnamese Norms (TT 12/2021) & Job Costing (EVM) 🔄 (Next)
-4. **Cycle 4**: Material Procurement & Site Warehouse Inventory (GRN / GIN)
-5. **Cycle 5**: Machinery & Equipment Fleet Management
-6. **Cycle 6**: WinSteel Pre-Engineered Steel Factory Module (BOM & Nesting)
-7. **Cycle 7**: GPS Site Attendance & Vietnamese Labor Payroll
-8. **Cycle 8**: Construction WIP Accounting (TK 154) & Financial Reporting
-9. **Cycle 9**: Executive BI Cockpit & Risk Heatmap
-
----
-
-## Network Topology & Connectivity
+## Network Topology & Cluster Status
 
 ```
 [PC-3: Lead (192.168.1.2)]      ──┐
 [PC-4: BA (192.168.1.2)]        ──┼──► Viettel LAN (192.168.1.x)
 [PC-1: Dev (192.168.1.3)]       ──┤
 [PC-2: Tester (192.168.1.4)]    ──┤
-[Server: Hub (192.168.1.50)]    ◄─┴── Hub (:8000) & PostgreSQL (:5432/adb_erp)
+[Server: Hub (192.168.1.50)]    ◄─┴── Hub (:8000), ERP Backend (:8085), Frontend (:3000), Cloudflare Tunnel
 ```

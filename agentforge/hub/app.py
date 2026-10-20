@@ -23,6 +23,42 @@ storage = HubStorage()
 active_connections: Dict[str, WebSocket] = {}  # agent_id -> WebSocket
 ui_connections: List[WebSocket] = []           # Web dashboard sockets
 
+async def check_and_assign_pending_tasks():
+    """Continuously checks the backlog for pending tasks and auto-assigns to newly idle matching agents."""
+    for task_id, task in list(storage.tasks.items()):
+        if task.status == "pending":
+            for a_id, agent in list(storage.agents.items()):
+                if agent.role == task.assigned_role and agent.status == "idle" and a_id in active_connections:
+                    target_ws = active_connections[a_id]
+                    effective_engine = task.engine or agent.engine or "opencode"
+                    effective_model = task.model or agent.model
+                    task.engine = effective_engine
+                    task.model = effective_model
+                    task.assigned_agent_id = a_id
+                    task.status = "in_progress"
+                    await storage.update_agent_status(a_id, "busy", current_task_id=task_id)
+                    payload = {
+                        "jsonrpc": "2.0",
+                        "method": "task.assign",
+                        "params": {
+                            "task_id": task_id,
+                            "title": task.title,
+                            "description": task.description,
+                            "priority": task.priority,
+                            "engine": effective_engine,
+                            "model": effective_model
+                        }
+                    }
+                    try:
+                        await target_ws.send_text(json.dumps(payload))
+                        await storage.save_task(task)
+                        await storage.add_message("Hub", f"Auto-assigned pending {task_id} to {a_id} [{effective_engine} ({effective_model})]")
+                        await broadcast_ui("task_assigned", task.dict())
+                        logger.info(f"Auto-assigned pending {task_id} to idle agent {a_id}")
+                        break
+                    except Exception as e:
+                        logger.error(f"Failed to auto-dispatch pending {task_id} to {a_id}: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("AgentForge Hub starting up...")
@@ -93,6 +129,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     "id": msg_id
                 }))
                 logger.info(f"Agent registered: {current_agent_id} ({agent.role})")
+                await check_and_assign_pending_tasks()
 
             # 2. Agent Heartbeat
             elif method == "agent.heartbeat":
@@ -127,6 +164,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     await storage.update_agent_status(current_agent_id, "idle", current_task_id=None)
                 await storage.add_message(current_agent_id or "Agent", f"✅ Task {task_id} completed: {summary}")
                 await broadcast_ui("task_complete", params)
+                await check_and_assign_pending_tasks()
 
             # 5. Task Failure / Defect Report
             elif method == "task.failed":
@@ -143,6 +181,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     await storage.update_agent_status(current_agent_id, "idle", current_task_id=None)
                 await storage.add_message(current_agent_id or "Agent", f"❌ Task {task_id} FAILED: {details}")
                 await broadcast_ui("task_failed", params)
+                await check_and_assign_pending_tasks()
 
             # 6. Chat Message
             elif method == "chat.message":

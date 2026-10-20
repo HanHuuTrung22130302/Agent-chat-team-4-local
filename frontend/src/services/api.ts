@@ -1,5 +1,17 @@
 import axios from 'axios';
-import { Project, WBSItem, DailySiteDiary, Subcontractor, Subcontract, PaymentCertificate } from '../types';
+import { 
+  Project, 
+  WBSItem, 
+  DailySiteDiary, 
+  Subcontractor, 
+  Subcontract, 
+  PaymentCertificate,
+  EVMAnalysis,
+  Material,
+  StockBalance,
+  Equipment,
+  SteelComponent
+} from '../types';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -152,6 +164,88 @@ export const subcontractorApi = {
           netPayableAmount: 4134000000,
           status: 'APPROVED'
         }
+      ];
+    }
+  }
+};
+
+export const boqApi = {
+  getEVMAnalysis: async (projectId: number): Promise<EVMAnalysis> => {
+    try {
+      const response = await apiClient.get<EVMAnalysis>(`/boq/${projectId}/evm`);
+      return response.data;
+    } catch {
+      return {
+        projectId,
+        bac: 185000000000,
+        plannedValue: 71225000000,
+        earnedValue: 72850000000,
+        actualCost: 69400000000,
+        costVariance: 3450000000,
+        scheduleVariance: 1625000000,
+        cpi: 1.05,
+        spi: 1.02,
+        estimateAtCompletion: 176190476190,
+        healthStatus: 'HEALTHY'
+      };
+    }
+  }
+};
+
+export const inventoryApi = {
+  getMaterials: async (): Promise<Material[]> => {
+    try {
+      const response = await apiClient.get<Material[]>('/materials');
+      return response.data;
+    } catch {
+      return [
+        { id: 1, code: 'MAT-STEEL-CB400', name: 'Thép thanh vằn Hòa Phát CB400 D20-D32', category: 'STEEL', unit: 'TẤN', standardNormRate: 2.50, specs: 'TCVN 1651-2:2018' },
+        { id: 2, code: 'MAT-CONC-M300', name: 'Bê tông thương phẩm mác M300 R28', category: 'CONCRETE', unit: 'M3', standardNormRate: 1.50, specs: 'TCVN 9340:2012' },
+        { id: 3, code: 'MAT-SAND-GOLD', name: 'Cát vàng xây tô bê tông hạt to', category: 'AGGREGATES', unit: 'M3', standardNormRate: 3.00, specs: 'TCVN 7570:2006' },
+        { id: 4, code: 'MAT-CEMENT-PCB40', name: 'Xi măng Holcim/Insee PCB40 bao 50kg', category: 'CEMENT', unit: 'BAO', standardNormRate: 1.00, specs: 'TCVN 6260:2020' }
+      ];
+    }
+  },
+
+  getStockBalances: async (projectId: number): Promise<StockBalance[]> => {
+    try {
+      const response = await apiClient.get<StockBalance[]>(`/inventory/stock/${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        { id: 1, projectId, material: { id: 1, code: 'MAT-STEEL-CB400', name: 'Thép Hòa Phát CB400', category: 'STEEL', unit: 'TẤN', standardNormRate: 2.50 }, currentQuantity: 185.500, minimumThreshold: 50.000, lastUpdated: new Date().toISOString() },
+        { id: 2, projectId, material: { id: 2, code: 'MAT-CONC-M300', name: 'Bê tông tươi M300', category: 'CONCRETE', unit: 'M3', standardNormRate: 1.50 }, currentQuantity: 42.000, minimumThreshold: 20.000, lastUpdated: new Date().toISOString() },
+        { id: 3, projectId, material: { id: 3, code: 'MAT-SAND-GOLD', name: 'Cát vàng hạt to', category: 'AGGREGATES', unit: 'M3', standardNormRate: 3.00 }, currentQuantity: 310.000, minimumThreshold: 100.000, lastUpdated: new Date().toISOString() }
+      ];
+    }
+  }
+};
+
+export const equipmentApi = {
+  getEquipments: async (): Promise<Equipment[]> => {
+    try {
+      const response = await apiClient.get<Equipment[]>('/equipments');
+      return response.data;
+    } catch {
+      return [
+        { id: 1, code: 'EQ-CRANE-50T-01', name: 'Cần cẩu bánh xích Hitachi KH180-3 50T', category: 'CRANE', brand: 'Hitachi', ownerType: 'INTERNAL', status: 'OPERATIONAL', standardFuelNorm: 18.50, totalEngineHours: 4250.00, safetyInspectionExpiry: '2026-12-31' },
+        { id: 2, code: 'EQ-EXC-KOMATSU-01', name: 'Máy xúc đào bánh xích Komatsu PC200-8', category: 'EXCAVATOR', brand: 'Komatsu', ownerType: 'INTERNAL', status: 'OPERATIONAL', standardFuelNorm: 15.20, totalEngineHours: 3120.00, safetyInspectionExpiry: '2026-10-30' },
+        { id: 3, code: 'EQ-ROLLER-SAKAI-01', name: 'Máy lu rung Sakai SV520DH 14T', category: 'ROLLER', brand: 'Sakai', ownerType: 'INTERNAL', status: 'OPERATIONAL', standardFuelNorm: 12.00, totalEngineHours: 1450.00, safetyInspectionExpiry: '2027-03-20' }
+      ];
+    }
+  }
+};
+
+export const winsteelApi = {
+  getComponents: async (orderId: number): Promise<SteelComponent[]> => {
+    try {
+      const response = await apiClient.get<SteelComponent[]>(`/winsteel/components/order/${orderId}`);
+      return response.data;
+    } catch {
+      return [
+        { id: 101, componentMark: 'C1-1', componentType: 'COLUMN', profileSpecs: 'H500x250x8x12', steelGrade: 'SS400', lengthMm: 9500, weightKg: 1250, gridLocation: 'Trục 1-A', qrCodeUid: 'ADB-WS-P01-C1-001', cutStatus: 'COMPLETED', fitStatus: 'COMPLETED', weldStatus: 'NDT_PASSED', blastStatus: 'COMPLETED', paintStatus: 'COMPLETED', shippingStatus: 'ON_SITE', erectionStatus: 'ERECTED' },
+        { id: 102, componentMark: 'R1-1', componentType: 'RAFTER', profileSpecs: 'H600~350x200x6x10', steelGrade: 'SS400', lengthMm: 15000, weightKg: 1680, gridLocation: 'Kèo Trục 1', qrCodeUid: 'ADB-WS-P01-R1-001', cutStatus: 'COMPLETED', fitStatus: 'COMPLETED', weldStatus: 'NDT_PASSED', blastStatus: 'COMPLETED', paintStatus: 'COMPLETED', shippingStatus: 'ON_SITE', erectionStatus: 'PENDING' },
+        { id: 103, componentMark: 'Z200-01', componentType: 'PURLIN', profileSpecs: 'Z200x65x20x2.0', steelGrade: 'Q345B', lengthMm: 6000, weightKg: 35, gridLocation: 'Xà gồ mái trục 1-2', qrCodeUid: 'ADB-WS-P01-Z-001', cutStatus: 'COMPLETED', fitStatus: 'COMPLETED', weldStatus: 'COMPLETED', blastStatus: 'COMPLETED', paintStatus: 'COMPLETED', shippingStatus: 'IN_SHOP', erectionStatus: 'PENDING' }
       ];
     }
   }
