@@ -135,6 +135,24 @@ class AgentDaemon:
         title = params.get("title", "")
         description = params.get("description", "")
         
+        # Auto-sync codebase with origin/main before executing task
+        try:
+            logger.info("Auto-syncing codebase: git pull origin main before task execution...")
+            git_res = subprocess.run(
+                ["git", "pull", "--rebase", "origin", "main"],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=30
+            )
+            if git_res.returncode == 0:
+                logger.info("Codebase successfully synced with origin/main.")
+            else:
+                logger.warning(f"Git pull non-zero: {git_res.stderr.strip() or git_res.stdout.strip()}")
+        except Exception as e:
+            logger.warning(f"Auto git pull failed or skipped: {e}")
+
         # Allow task-level engine and model override
         task_engine_name = params.get("engine") or self.engine_name
         task_model = params.get("model") or self.model

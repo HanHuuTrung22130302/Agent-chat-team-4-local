@@ -109,49 +109,24 @@ class OpenCodeEngine:
             if result.returncode == 0 and not is_quota_error(output):
                 return output or "Task completed (empty output)."
 
-            # Check if this was a Quota / Rate-limit error
-            if is_quota_error(err_msg) or is_quota_error(output):
-                logger.warning(f"[QUOTA ALERT] Model [{target_model}] hit rate/quota limit! Error: {err_msg}")
-                if target_model != self.fallback_model:
-                    logger.info(f"==> Auto-fallback to FREE model [{self.fallback_model}] to keep workflow running...")
-                    fallback_result = subprocess.run(
-                        [self.cmd, "run", "-m", self.fallback_model, clean_prompt],
-                        stdin=subprocess.DEVNULL,
-                        capture_output=True,
-                        encoding="utf-8",
-                        errors="replace",
-                        timeout=180,
-                        shell=use_shell
-                    )
-                    fb_out = (fallback_result.stdout or "").strip()
-                    if fallback_result.returncode == 0:
-                        return f"[Notice: Auto-switched to {self.fallback_model} due to quota limit on {target_model}]\n\n" + fb_out
-
-                return f"[QUOTA_EXHAUSTED]: {err_msg}"
-
             logger.error(f"OpenCode error: {err_msg}")
         except subprocess.TimeoutExpired:
-            logger.warning(f"[TIMEOUT ALERT] Model [{target_model}] timed out after 180s. Attempting fallback...")
+            logger.warning(f"[TIMEOUT ALERT] Model [{target_model}] timed out after 180s. Attempting Antigravity fallback...")
             err_msg = "Execution timed out after 180s"
-            
-            # Smart Engine Fallback: If OpenCode fails (e.g. expired key or missing), auto-try Antigravity if available
-            agy_bin = find_agy_executable()
-            if os.path.exists(agy_bin) or shutil.which(agy_bin) or agy_bin == "agy":
-                logger.info(f"==> Auto-fallback to Antigravity CLI ({agy_bin}) due to OpenCode error...")
-                agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
-                agy_output = agy_engine.execute(prompt)
-                if not agy_output.startswith("[") or "Notice:" in agy_output:
-                    return f"[Notice: Auto-switched to Antigravity (gemini-3.8-flash-high) because OpenCode failed: {err_msg[:80]}]\n\n" + agy_output
-            
-            return f"[OpenCode Error]: {err_msg}"
         except Exception as e:
             logger.error(f"OpenCode execution failed: {e}")
-            agy_bin = find_agy_executable()
-            if os.path.exists(agy_bin) or shutil.which(agy_bin) or agy_bin == "agy":
-                logger.info(f"==> Auto-fallback to Antigravity CLI ({agy_bin}) due to OpenCode exception...")
-                agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
-                return agy_engine.execute(prompt)
-            return f"[Execution Exception]: {e}"
+            err_msg = str(e)
+
+        # Smart Engine Fallback: Whenever OpenCode fails, auto-try Antigravity CLI
+        agy_bin = find_agy_executable()
+        if os.path.exists(agy_bin) or shutil.which(agy_bin) or agy_bin == "agy":
+            logger.info(f"==> Auto-fallback to Antigravity CLI ({agy_bin}) due to OpenCode error: {err_msg[:80]}...")
+            agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
+            agy_output = agy_engine.execute(prompt)
+            if not agy_output.startswith("[") or "Notice:" in agy_output:
+                return f"[Notice: Auto-switched to Antigravity (gemini-3.8-flash-high) because OpenCode failed: {err_msg[:60]}]\n\n" + agy_output
+
+        return f"[OpenCode Error]: {err_msg}"
 
 class AntigravityEngine:
     """Executes tasks via Antigravity CLI (agy.exe) with automatic Quota Fallback."""
