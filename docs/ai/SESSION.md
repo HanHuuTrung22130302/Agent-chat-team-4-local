@@ -43,3 +43,36 @@
   - Rebuilt `erp-adb-frontend` container on Ubuntu Server `192.168.1.50`.
   - Both LAN endpoint (`http://192.168.1.50:3000`) and Cloudflare tunnel (`https://resolved-commander-price-reduces.trycloudflare.com`) verified HTTP 200.
 
+---
+
+## Session: 2026-10-21 (TASK-022 — Đặc tả Module 08 QA/QC & Module 09 HSE)
+
+### Summary
+- **Deliverables (BA Agent, PC-4 `ba-hant_lap`)**:
+  - `docs/specs/SPEC-08-QAQC-INSPECTION.md` — Module 08 Quản lý Chất lượng QA/QC (NĐ 06/2021/NĐ-CP):
+    16 User Stories → 17 Gherkin AC; 8 quy trình (ITP Hold/Witness/Surveillance, RFI công tác ẩn SLA 48h + escalation L1/L2/L3, mẫu bê tông R7/R14/R28 theo TCVN 9340:2012, siêu âm đường hàn TCVN 6735, vòng đời NCR 9 trạng thái, CO/CQ vật tư, hồ sơ HBCT + Punch List, 3 mốc BBNT NĐ 06);
+    PostgreSQL DDL schema `qaqc_mgmt` (**20 bảng**); **41 REST endpoint**; 9 giao diện UI.
+  - `docs/specs/SPEC-09-HSE-SAFETY-PTW.md` — Module 09 An toàn Lao động & Cấp phép HSE (TT 10/2021/TT-BXD):
+    15 User Stories → 20 Gherkin AC; 8 quy trình (HĐND/JSA 5×5, vòng đời PTW 9 trạng thái, 7 loại giấy phép, near-miss & 5 Whys, họp an toàn đầu giờ, ứng cứu khẩn cấp, chứng chỉ huấn luyện Nhóm 1/2/3/4 theo NĐ 44/2016, biên bản vi phạm an toàn → khấu trừ PPC);
+    PostgreSQL DDL schema `hse_mgmt` (**21 bảng**); **40 REST endpoint**; 10 giao diện UI.
+- **Xác minh DDL trên PostgreSQL thật** (`192.168.1.50:5432`): database tạm `adb_ddl_validation_t022` (baseline `V1__init_schema.sql` → DDL 2 spec → kiểm tra bảng/seed → drop DB).
+  **97 câu lệnh, 0 lỗi, 41 bảng, 105 FK, 287 CHECK constraint.** Không đụng dữ liệu production.
+- **Đối chiếu hợp đồng DTO với frontend đang chạy** (`frontend/src/types/index.ts`): đã đổi tên field về đúng contract đang được compile trong `QAQCModule.tsx` / `HSEModule.tsx` —
+  `strengthR28Mpa`, `strengthR7Mpa`, `requiredStrengthMpa`, `sampleCode`, `ncrNumber`, `inspectionCode`, `ptwNumber`, `permitType`, `incidentCode`, `lostDays`, `remedialAction`;
+  enum PTW chuẩn hoá về `WORKING_AT_HEIGHT` (bỏ `WORK_AT_HEIGHTS`); bổ sung `concrete_batches.slump_mm`.
+  Kèm §7.3 "Canonical DTO Contract & Frontend Compatibility" + bảng chiếu enum DB → DTO cho cả 2 spec.
+
+### Decisions Made
+- [x] Số hiệu Module 08 = QA/QC, Module 09 = HSE — xác nhận theo `docs/plans/ENTERPRISE_ARCHITECTURE_ROADMAP.md` (bản `MASTER_ROADMAP.md` cũ đã lịch sử).
+- [x] Tên file theo đúng bảng nhiệm vụ của roadmap: `SPEC-08-QAQC-INSPECTION.md`, `SPEC-09-HSE-SAFETY-PTW.md`.
+- [x] FK chéo schema không cưỡng chế khi schema đích chưa được migrate (`inventory_mgmt` V3, `equipment_mgmt` V4) — dùng logical reference để `V6` deploy độc lập.
+- [x] Mọi ngưỡng nghiệm thu (bê tông, siêu âm hàn, SLA) nằm trong bảng cấu hình có ngày hiệu lực, không hard-code trong service.
+- [x] Quy tắc 2 bình chữa cháy áp dụng cho cả `HOT_WORK` và `WORKING_AT_HEIGHT` — khớp phản ánh của Tester trong TASK-024.
+- [x] Business rule giữ trên **state machine DB**; DTO chỉ là lớp chiếu (projection) — đã ghi rõ trong §7.3.5 / §7.3.4.
+
+### Next Recommended Actions
+1. Lead review & duyệt SPEC-08 / SPEC-09, trả lời các câu hỏi mở ở §12 (ngưỡng bê tông, tiêu chí UT, ngưỡng toolbox 90%, nguồn `total_hours_worked`).
+2. Developer (TASK-023) hiện thực `V6__create_qaqc_and_hse_tables.sql` + JPA/Service/Controller theo entity mapping contract §6.1; **bắt buộc** implement đúng 6 endpoint read mà frontend đang gọi: `/qaqc/inspections`, `/qaqc/concrete-tests`, `/qaqc/ncrs`, `/hse/permits`, `/hse/incidents`, `/hse/toolbox`.
+3. Tester (TASK-024) viết `ConcreteStrengthServiceTest` & `PermitToWorkServiceTest` theo AC-08-01/02/03 và AC-09-01/02/03.
+4. Lead: `MASTER_ROADMAP.md` nên được ghi chú là đã bị `ENTERPRISE_ARCHITECTURE_ROADMAP.md` thay thế để tránh trích dẫn sai số hiệu phân hệ.
+
