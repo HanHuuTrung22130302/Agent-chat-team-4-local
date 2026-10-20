@@ -311,7 +311,8 @@ export const qaqcApi = {
           attachedPhotosCount: 8
         }
       ];
-    },
+    }
+  },
 
   getConcreteTests: async (projectId: number): Promise<ConcreteTestSample[]> => {
     try {
@@ -362,7 +363,8 @@ export const qaqcApi = {
           status: 'TESTING'
         }
       ];
-    },
+    }
+  },
 
   getNCRs: async (projectId: number): Promise<NCRReport[]> => {
     try {
@@ -459,7 +461,8 @@ export const hseApi = {
           status: 'CLOSED'
         }
       ];
-    },
+    }
+  },
 
   getIncidents: async (projectId: number): Promise<SafetyIncident[]> => {
     try {
@@ -480,7 +483,8 @@ export const hseApi = {
           status: 'CLOSED'
         }
       ];
-    },
+    }
+  },
 
   getToolboxMeetings: async (projectId: number): Promise<ToolboxMeeting[]> => {
     try {
