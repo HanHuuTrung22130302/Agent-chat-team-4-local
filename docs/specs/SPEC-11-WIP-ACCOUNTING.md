@@ -4,7 +4,7 @@
 > **Author**: BA Agent (PC-4 — `ba-hant_lap`)
 > **Task**: TASK-025 — "Dac ta Module 10 (Nhan luc & Cham cong GPS) va Module 11 (Ke toan Chi phi WIP D&B)"
 > **Status**: Review (chờ Lead duyệt)
-> **Version**: 1.0.0
+> **Version**: 1.1.0
 > **Date**: 2026-10-21
 > **Stack**: Java 21 + Spring Boot 3.3.x + PostgreSQL 17 + React 18 + TypeScript
 > **Target Enterprise**: Ánh Dương Building (ADB) — Tổng thầu Thiết kế & Thi công (D&B) Hạng I
@@ -17,6 +17,13 @@
 > **Quy ước đánh số Module**: Theo phân công của Lead trong TASK-025, **Module 10 = Nhân lực & Chấm công**, **Module 11 = Kế toán WIP/POC**.
 > Trong `docs/plans/ENTERPRISE_ARCHITECTURE_ROADMAP.md`, WIP được đánh số **Phân hệ 10** và nhân lực nằm trong Phân hệ 02.
 > Tài liệu này giữ cách đánh số của TASK-025. Đây là **nguồn dữ liệu gốc** cho doanh thu, giá vốn và chi phí dở dang; mọi module khác chỉ gửi **cost transaction**, không tự ghi bút toán.
+
+### Revision History
+
+| Version | Date | Author | Change |
+|---|---|---|---|
+| 1.1.0 | 2026-10-21 | BA Agent | Review fixes: seed TK 3382/3386/3335 (required by payroll postings from SPEC-10); add `created_at`/`updated_at` to `period_close_runs`; standardise error codes with the Gherkin ACs and DB triggers (`COST_OF_SALES_EXCEEDS_INCURRED`, `NEGATIVE_WIP_REQUIRES_ACCRUAL`, `POC_VS_CERTIFIED_VARIANCE_REQUIRES_EXPLANATION`, `DUPLICATE_COST_POSTING`, `POSTED_ENTRY_IMMUTABLE`, `POSTED_POC_IMMUTABLE`, `TRIAL_BALANCE_MISMATCH`, `WIP_RECONCILIATION_MISMATCH`, `JOURNAL_MUST_BE_POSTED_AFTER_LINES`); AC-11-25…AC-11-28 added and US→AC coverage matrix (§2.1) added; DDL parse record added (§6.3). |
+| 1.0.0 | 2026-10-21 | BA Agent | Initial issue for Lead review. |
 
 ---
 
@@ -118,6 +125,25 @@ Sai lầm phổ biến là dùng **một** con số doanh thu cho cả ba. SPEC-
 | US-11-22 | CFO | As a **CFO**, I want a **13-week cash forecast from billing, retention and advance**, so that working capital is planned, not discovered. | §4.7, §8.1 |
 | US-11-23 | GL Accountant | As a **GL Accountant**, I want **site overhead (627) allocated by a documented driver**, so that project margins are comparable. | §4.9 |
 | US-11-24 | System / GL Accountant | As a **GL Accountant**, I want **failed integrations visible and retryable**, so that a network glitch does not silently lose cost. | §3.1, §6.23 |
+
+### 2.1 Coverage Matrix (User Story → Acceptance Criteria)
+
+Every story has at least one executable scenario, except the two pure-report stories (US-11-22 cash forecast, US-11-23 overhead allocation), which are verified through §8 reports because they assert presentation rather than a state transition.
+
+| Story | Acceptance Criteria | Story | Acceptance Criteria |
+|---|---|---|---|
+| US-11-01 | AC-11-01, AC-11-05 | US-11-13 | AC-11-19, AC-11-20 |
+| US-11-02 | AC-11-01, AC-11-03, AC-11-04 | US-11-14 | AC-11-19 |
+| US-11-03 | AC-11-02 | US-11-15 | AC-11-20 |
+| US-11-04 | AC-11-07 | US-11-16 | AC-11-27 |
+| US-11-05 | AC-11-06, AC-11-07, AC-11-25 | US-11-17 | AC-11-22 |
+| US-11-06 | AC-11-10, AC-11-24 | US-11-18 | AC-11-14 |
+| US-11-07 | AC-11-08, AC-11-09 | US-11-19 | AC-11-16, AC-11-18 |
+| US-11-08 | AC-11-05 + §8.1 (WIP cockpit) | US-11-20 | AC-11-21 |
+| US-11-09 | AC-11-26 | US-11-21 | AC-11-23 |
+| US-11-10 | AC-11-12 | US-11-22 | §4.7 + §8.1 (report) |
+| US-11-11 | AC-11-15, AC-11-16 | US-11-23 | §4.9 (report) |
+| US-11-12 | AC-11-17, AC-11-23 | US-11-24 | AC-11-28 |
 
 ---
 
@@ -252,7 +278,7 @@ sequenceDiagram
 
 **Rule POC-6 (Negative catch-up)**: If POC decreases, `current_revenue_recognized` is negative. This is allowed only if `cumulative_revenue >= 0`; otherwise **422 `NEGATIVE_CATCH_UP_NOT_ALLOWED`**. The UI must show a red "điều chỉnh giảm" entry with reason.
 
-**Rule POC-7 (Variance guard)**: If `|POC revenue − certified value| / certified value > 5%`, the calculation is flagged `POC_VS_CERTIFIED_VARIANCE` and requires a written explanation before `APPROVED`. This is the "đối chiếu doanh thu nghiệm thu theo POC" control.
+**Rule POC-7 (Variance guard)**: If `|POC revenue − certified value| / certified value > 5%`, the calculation is flagged `POC_VS_CERTIFIED_VARIANCE_REQUIRES_EXPLANATION` and requires a written explanation before `APPROVED`. This is the "đối chiếu doanh thu nghiệm thu theo POC" control.
 
 **Rule POC-8 (One approved POC per project-period)**: A second `APPROVED` POC for the same project and period is rejected with **409 `POC_ALREADY_APPROVED`**. A revision creates a new `revision` with the prior one `REVERSED` (not edited).
 
@@ -808,6 +834,39 @@ Scenario AC-11-24: Duyệt POC lần hai cho cùng dự án/kỳ — từ chối
   When người dùng duyệt thêm một POC khác cho cùng dự án và kỳ
   Then hệ thống phải từ chối với httpStatus 409 và mã lỗi "POC_ALREADY_APPROVED"
   And phải hướng dẫn tạo revision (đảo POC cũ trước)
+
+Scenario AC-11-25: POC theo mốc nghiệm thu (milestone) — bắt buộc minh chứng
+  Given hợp đồng 100 tỷ chưa VAT và EAC 85 tỷ
+  And các mốc nghiệm thu luỹ kế đã duyệt là 30 tỷ
+  When QS tính POC với phương pháp "MILESTONE"
+  Then poc_percentage phải là 0,300000 và doanh thu luỹ kế phải là 30.000.000.000 đ
+  And giá vốn luỹ kế phải là 25.500.000.000 đ (0,30 × 85 tỷ)
+  When không có mốc nào được duyệt
+  Then hệ thống phải từ chối với httpStatus 422 và mã lỗi "POC_EVIDENCE_MISSING"
+
+Scenario AC-11-26: Sửa đổi EAC — duyệt trước, không hồi tố kỳ trước
+  Given EAC đã duyệt của dự án 101 là 85 tỷ và POC kỳ trước đã POSTED
+  When QS trình EAC revision mới 92 tỷ
+  Then POC chỉ được tính lại sau khi Giám đốc dự án và Kế toán trưởng duyệt
+  And nếu revision biến lãi thành lỗ, phải có thêm phê duyệt của Tổng Giám đốc
+  And khi revision chưa duyệt, mọi lần tính POC vẫn dùng EAC cũ; nếu cố dùng EAC mới phải trả 409 "EAC_NOT_APPROVED"
+  And kỳ đã POSTED không được hồi tố; điều chỉnh chỉ áp dụng cho kỳ hiện tại và tương lai
+
+Scenario AC-11-27: Báo cáo P&L dự án khớp sổ cái
+  Given dự án 101 kỳ 2026-10 có POC 50%, doanh thu luỹ kế 50 tỷ và giá vốn luỹ kế 42,5 tỷ
+  When CFO gọi `GET /api/v1/accounting/projects/101/profitability?period=2026-10`
+  Then phải trả httpStatus 200 với grossMarginPct = 15,0000 và wip154 = 0,00
+  And contractAsset phải là 10 tỷ và contractLiability phải là 0
+  And doanh thu, giá vốn và WIP phải khớp số dư TK 511, 632, 154, 337 của kỳ
+
+Scenario AC-11-28: Tích hợp lỗi — retry, cảnh báo và chặn đóng kỳ
+  Given payload chi phí từ SPEC-06 thiếu cost_code hợp lệ
+  When bộ xử lý tích hợp nhận payload
+  Then accounting_integration_log phải ghi status "RETRYING" kèm raw payload và retry_count
+  And phải retry theo lịch 1 phút, 5 phút, 30 phút, 2 giờ, 12 giờ; sau lần thứ 6 chuyển "FAILED" và gọi on-call
+  And bước checklist "INTEGRATION_QUEUE_CLEAR" phải thất bại với httpStatus 409 "CLOSE_CHECKLIST_FAILED", chặn đóng kỳ
+  When vận hành gọi replay hai lần cho cùng log
+  Then chỉ được tạo đúng một cost transaction và trả về transactionNo đã tồn tại
 ```
 
 ---
@@ -1401,7 +1460,9 @@ CREATE TABLE IF NOT EXISTS accounting_mgmt.period_close_runs (
     approved_by BIGINT REFERENCES core_iam.users(id),
     approved_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
-    notes TEXT
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ── 23. Nhật ký tích hợp (inbound) ──────────────────────────────────────
@@ -1647,7 +1708,7 @@ BEGIN
      WHERE cost_transaction_id = v_transaction_id;
 
     IF v_total <> 0 AND ABS(v_total - 100.0000) > 0.0100 THEN
-        RAISE EXCEPTION 'COST_ALLOCATION_NOT_100_PERCENT: transaction % totals %',
+        RAISE EXCEPTION 'ALLOCATION_NOT_100_PERCENT: transaction % totals %',
             v_transaction_id, v_total USING ERRCODE = 'P0001';
     END IF;
     RETURN NULL;
@@ -1745,8 +1806,11 @@ VALUES
     ('1547', 'Chi phí sản xuất chung và thuê ngoài', '154', 2, 'ASSET', 'DEBIT', TRUE, TRUE, TRUE),
     ('3331', 'Thuế GTGT phải nộp', '333', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
     ('3334', 'Thuế thu nhập doanh nghiệp', '333', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
+    ('3335', 'Thuế thu nhập cá nhân', '333', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
+    ('3382', 'Kinh phí công đoàn', '338', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
     ('3383', 'Bảo hiểm xã hội', '338', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
     ('3384', 'Bảo hiểm y tế', '338', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
+    ('3386', 'Bảo hiểm tai nạn lao động, bệnh nghề nghiệp', '338', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE),
     ('3389', 'Bảo hiểm thất nghiệp', '338', 2, 'LIABILITY', 'CREDIT', FALSE, FALSE, TRUE)
 ON CONFLICT (account_code) DO NOTHING;
 
@@ -1814,6 +1878,19 @@ Closing a period is a **database transaction with a checklist**, not a button th
 3. If any step fails, `status='FAILED'`, `error_code` is set, and `fiscal_periods.status` remains `OPEN`.
 4. If all steps pass, `status='PASSED'`; a second user approves; only then `fiscal_periods.status='CLOSED'`.
 5. The trigger `trg_block_closed_period` physically prevents any later journal entry in that period.
+
+### 6.3 DDL Validation Record
+
+| Item | Result |
+|---|---|
+| Parser | `libpg_query` via `pglast` 8.7 — the actual PostgreSQL 17 grammar (not a generic SQL linter) |
+| Statements parsed | 87 statements, **0 syntax errors** (24 tables, 25 indexes, 11 triggers, 8 functions) |
+| Baseline FK targets | `core_iam.users(id)`, `project_mgmt.projects(id)`, `project_mgmt.wbs_items(id)` all exist in `V1__init_schema.sql` |
+| Name collisions | No duplicate table, index, constraint or trigger names inside `accounting_mgmt` |
+| Seed integrity | `chart_of_accounts` seed has 44 accounts; every `VALUES` row matches its 9 declared columns |
+| **Not yet done** | Live execution against PostgreSQL 17 (no server available in the authoring session). This remains a hard gate in §11.4, and the migration must be applied to a scratch DB before the spec is marked **Approved**. |
+
+> The DDL is declared **structurally valid**, not yet **runtime-proven**. Do not upgrade this spec to Approved on the strength of the static parse alone.
 
 ## 7. REST API Specification
 
@@ -2139,7 +2216,7 @@ Violations return **403 `SEGREGATION_OF_DUTIES_VIOLATION`**.
   ],
   "warnings": [
     {
-      "code": "POC_VS_CERTIFIED_VARIANCE",
+      "code": "POC_VS_CERTIFIED_VARIANCE_REQUIRES_EXPLANATION",
       "severity": "WARNING",
       "message": "Doanh thu POC 50 tỷ cao hơn giá trị nghiệm thu luỹ kế 45 tỷ là 11,11% (ngưỡng 5%). Cần giải trình trước khi duyệt.",
       "fields": { "pocRevenue": "50000000000.00", "certifiedValue": "45000000000.00" }
@@ -2731,6 +2808,10 @@ The API returns the **signed** value and a human-readable `presentation`; the UI
 | 409 | `COST_ALREADY_REVERSED` | Duplicate reversal | No action |
 | 409 | `BILLING_ALREADY_CERTIFIED` | IPC already certified | Amend via a new IPC revision |
 | 409 | `DUPLICATE_SOURCE_DOCUMENT` | Natural key conflict with different amounts | Reconcile the source document |
+| 409 | `DUPLICATE_COST_POSTING` | Idempotent retry of an already-posted cost line (same natural key, same amount) | Return the existing `transactionNo` + `journalEntryId`; do not create a new row |
+| 409 | `POSTED_ENTRY_IMMUTABLE` | Update/delete attempted on a `POSTED` or `REVERSED` journal entry or line | Post a reversal entry instead |
+| 409 | `POSTED_POC_IMMUTABLE` | Update/delete attempted on an `APPROVED` or `POSTED` POC calculation | Create a new revision |
+| 409 | `JOURNAL_MUST_BE_POSTED_AFTER_LINES` | Journal header inserted directly as `POSTED` | Insert as `DRAFT`, add ≥ 2 lines, then post |
 | 409 | `JOURNAL_ALREADY_REVERSED` | Journal already reversed | No action |
 | 409 | `CLOSE_RUN_IN_PROGRESS` | Another close run is running | Wait |
 | 409 | `CLOSE_ALREADY_APPROVED` | Period already closed | Reopen with GD approval |
@@ -2739,10 +2820,12 @@ The API returns the **signed** value and a human-readable `presentation`; the UI
 | 422 | `COST_AMOUNT_ZERO` | `amount_ex_vat = 0` | Skip or correct the source line |
 | 422 | `POC_INPUT_INCOMPLETE` | Missing EAC, contract value or cost data | Complete the inputs |
 | 422 | `POC_EVIDENCE_MISSING` | Survey/milestone method without approved evidence | Approve measurements first |
-| 422 | `POC_VS_CERTIFIED_VARIANCE` | Variance > 5% without an explanation | Provide `explanation` and `acknowledgeVariance` |
+| 422 | `POC_VS_CERTIFIED_VARIANCE_REQUIRES_EXPLANATION` | Variance > 5% without an explanation | Provide `explanation` and `acknowledgeVariance` |
 | 422 | `NEGATIVE_CATCH_UP_NOT_ALLOWED` | Cumulative revenue would go below zero | Correct the prior data |
-| 422 | `NEGATIVE_WIP_NOT_ALLOWED` | COS would exceed cost incurred | Recalculate or revise EAC |
-| 422 | `COS_EXCEEDS_COST_INCURRED` | COS > cumulative cost | Fix the POC input |
+| 409 | `NEGATIVE_WIP_REQUIRES_ACCRUAL` | WIP < −1% of EAC and no TK 335 accrual posted | Post an accrual or revise the POC |
+| 422 | `COST_OF_SALES_EXCEEDS_INCURRED` | COS > cumulative cost incurred (REV-9) | Fix the POC input or accrue cost first |
+| 409 | `WIP_RECONCILIATION_MISMATCH` | `wip_period_balances` roll-forward ≠ GL TK 154 | Re-run the WIP roll-forward and correct the break |
+| 409 | `TRIAL_BALANCE_MISMATCH` | Sum of debits ≠ sum of credits for the period | Inspect unbalanced journals before closing |
 | 422 | `CONTRACT_VALUE_MISSING` | No approved contract value | Complete the financial profile |
 | 422 | `VARIATION_NOT_APPROVED` | VO included before approval | Approve the VO first |
 | 422 | `RETENTION_RATE_OUT_OF_RANGE` | Rate outside 0–5% | Use 3–5% per NĐ 06/2021 |
@@ -3260,7 +3343,7 @@ These are the controls an auditor will test. Each maps to a close-checklist step
 - [ ] Flyway `V8` applies cleanly on an empty database **and** on a production copy; re-running is a no-op.
 - [ ] JPA entities, repositories, services and controllers in `com.anhduongbuilding.erp.accounting`.
 - [ ] OpenAPI 3.1 contract published; frontend TypeScript types generated in CI.
-- [ ] All 24 Gherkin scenarios in §5 automated and green.
+- [ ] All 28 Gherkin scenarios in §5 automated and green.
 - [ ] Unit tests: `CostTransactionPostingTest`, `JournalBalanceTest`, `PocCostToCostTest`, `PocSurveyTest`, `PocMilestoneTest`, `PocVarianceGuardTest`, `NegativeCatchUpTest`, `ExpectedLossProvisionTest`, `WipRollForwardTest`, `Tk337BridgeTest`, `RetentionCapTest`, `AdvanceRecoveryTest`, `PeriodCloseChecklistTest`, `ClosedPeriodImmutabilityTest`, `ReversalOnlyCorrectionTest`, `TaxReconciliationTest`, `IdempotencyTest`, `SegregationOfDutiesTest`.
 - [ ] Integration tests (Testcontainers PostgreSQL): cost ingestion → posting → WIP → POC → revenue/COS → IPC → invoice → close.
 - [ ] Golden dataset: **12 project-period closes** verified line-by-line against an Excel model signed by the Chief Accountant, including one expected-loss project and one survey-method project.
@@ -3295,6 +3378,10 @@ These are the controls an auditor will test. Each maps to a close-checklist step
 | AC-11-22 | `TaxReconciliationTest` |
 | AC-11-23 | `ReversalOnlyCorrectionTest` |
 | AC-11-24 | `PocCostToCostTest` (duplicate approval) |
+| AC-11-25 | `PocMilestoneTest` (evidence required) |
+| AC-11-26 | `EacRevisionTest` (approval + no restatement) |
+| AC-11-27 | `ProjectProfitabilityTest` (GL reconciliation) |
+| AC-11-28 | `IntegrationRetryTest` (retry ladder, DLQ, replay idempotency) |
 
 ---
 

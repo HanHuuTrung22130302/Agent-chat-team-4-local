@@ -4,7 +4,7 @@
 > **Author**: BA Agent (PC-4 — `ba-hant_lap`)
 > **Task**: TASK-025 — "Dac ta Module 10 (Nhan luc & Cham cong GPS) va Module 11 (Ke toan Chi phi WIP D&B)"
 > **Status**: Review (chờ Lead duyệt)
-> **Version**: 1.0.0
+> **Version**: 1.1.0
 > **Date**: 2026-10-21
 > **Stack**: Java 21 + Spring Boot 3.3.x + PostgreSQL 17 + React 18 + TypeScript
 > **Target Enterprise**: Ánh Dương Building (ADB) — Tổng thầu Thiết kế & Thi công (D&B) Hạng I
@@ -17,6 +17,13 @@
 > **Quy ước đánh số Module**: Theo phân công của Lead trong TASK-025, **Module 10 = Nhân lực & Chấm công**, **Module 11 = Kế toán WIP/POC**.
 > Trong `docs/plans/ENTERPRISE_ARCHITECTURE_ROADMAP.md`, Phân hệ 10 mang tên "Kế toán Chi phí Công trình Dở dang (TK 154)" và nhân lực nằm rải rác ở Phân hệ 02 (Nhật ký & Nhân công hiện trường).
 > Tài liệu này giữ cách đánh số của TASK-025 và là **nguồn dữ liệu gốc (system of record)** cho giờ công — là đầu vào bắt buộc của TK 622/1542 ở SPEC-11.
+
+### Revision History
+
+| Version | Date | Author | Change |
+|---|---|---|---|
+| 1.1.0 | 2026-10-21 | BA Agent | Review fixes: `chk_attendance_ot_night` no longer forbids night OT (aligns with §4.1 — `night_minutes` excludes OT-night); BHTN ceiling corrected to 20× lương tối thiểu vùng; employer BHXH split corrected to 3383 (17,0%) / 3386 (0,5%); `OT_NOT_APPROVED`, `OVERTIME_CAP_BREACH`, `PAYSLIP_ACCESS_DENIED`, `DISPUTE_WINDOW_EXPIRED` added to the error registry; AC-10-25…AC-10-28 added and US→AC coverage matrix (§2.1) added; DDL parse record added (§6.3). |
+| 1.0.0 | 2026-10-21 | BA Agent | Initial issue for Lead review. |
 
 ---
 
@@ -97,6 +104,24 @@ Ngoài ra, hợp đồng FIDIC D&B yêu cầu Nhà thầu duy trì **hồ sơ nh
 | US-10-20 | Ban Giám đốc | As a **Director**, I want a **headcount, overtime and labour-cost dashboard across projects**, so that I can see labour risk before month-end. | §8.1 |
 | US-10-21 | HR Officer | As an **HR Officer**, I want to **settle final pay on termination including leave and deductions**, so that the employee leaves with a legally correct settlement. | §3.6, §4.10 |
 | US-10-22 | Worker | As a **Worker**, I want to **view my own payslip and attendance history**, so that I can verify my pay without asking HR. | §8.2 |
+
+### 2.1 Coverage Matrix (User Story → Acceptance Criteria)
+
+Every story has at least one executable scenario. "Report" rows are verified through the report/UI acceptance in §8 rather than Gherkin, because they assert presentation, not a state transition.
+
+| Story | Acceptance Criteria | Story | Acceptance Criteria |
+|---|---|---|---|
+| US-10-01 | AC-10-13, AC-10-16 | US-10-12 | AC-10-19 |
+| US-10-02 | AC-10-13 | US-10-13 | AC-10-18 |
+| US-10-03 | AC-10-01, AC-10-05 | US-10-14 | AC-10-10 … AC-10-12, AC-10-16, AC-10-17 |
+| US-10-04 | AC-10-01 … AC-10-04 | US-10-15 | AC-10-20, AC-10-24 |
+| US-10-05 | AC-10-06, AC-10-07 | US-10-16 | AC-10-23 |
+| US-10-06 | AC-10-01 (live board) + §8.1 | US-10-17 | AC-10-21 |
+| US-10-07 | AC-10-04 (supervisor fallback) | US-10-18 | AC-10-20, AC-10-24 |
+| US-10-08 | AC-10-25 | US-10-19 | AC-10-22 |
+| US-10-09 | AC-10-14 | US-10-20 | AC-10-22 + §8.1 (dashboard) |
+| US-10-10 | AC-10-14 | US-10-21 | AC-10-26 |
+| US-10-11 | AC-10-28 | US-10-22 | AC-10-27 |
 
 ---
 
@@ -389,8 +414,8 @@ Night OT on public holiday = 300% + 30% + (20% × 300%) = 390%
 | Deduction | Rate / Formula | Cap / Note |
 |---|---|---|
 | **BHXH** | 8,0% of insurance salary | Insurance salary capped at 20× lương cơ sở |
-| **BHYT** | 1,5% | Same cap |
-| **BHTN** | 1,0% | Same cap; contract ≥ 3 months |
+| **BHYT** | 1,5% | Insurance salary capped at 20× lương cơ sở |
+| **BHTN** | 1,0% | Capped at **20× lương tối thiểu vùng** of the employee's `region_code` — *not* 20× lương cơ sở; contract ≥ 3 months |
 | **Union fee** | 1,0% | Only for union members |
 | **PIT** | Progressive 7 brackets (5% → 35%) | Personal deduction 11.000.000 đ/month; dependent 4.400.000 đ/person/month |
 | **Salary advance** | Outstanding advance | Cannot exceed net pay; carry forward if exceeded |
@@ -404,7 +429,7 @@ Night OT on public holiday = 300% + 30% + (20% × 300%) = 390%
 
 | Component | Rate | Account |
 |---|---|---|
-| BHXH (hưu trí, ốm đau, thai sản, TNLĐ-BNN) | 17,5% | 3383 / 3384 / 3386 |
+| **BHXH** (hưu trí, ốm đau, thai sản) + TNLĐ-BNN | 17,5% | 3383 (17,0%) / 3386 (0,5%) |
 | BHYT | 3,0% | 3384 |
 | BHTN | 1,0% | 3389 |
 | **Total employer contribution** | **21,5%** | 622 (direct labour) / 627 (indirect labour) |
@@ -689,6 +714,38 @@ Scenario AC-10-24: Kỳ lương đã duyệt — không cho tính lại
   When Payroll Accountant gọi lại API calculate
   Then hệ thống phải từ chối với httpStatus 409 và mã lỗi "PAYROLL_RUN_ALREADY_APPROVED"
   And phải hướng dẫn tạo kỳ điều chỉnh (supplementary run)
+
+Scenario AC-10-25: Công nhân khiếu nại bảng công — hạn 7 ngày
+  Given bản ghi công ngày 2026-10-20 của công nhân "ADB-W-00123" đã APPROVED với 6,5 giờ
+  When công nhân gửi khiếu nại lúc 2026-10-23 kèm lý do và ảnh minh chứng
+  Then phải tạo dispute trạng thái "OPEN" và bản ghi công chuyển "DISPUTED"
+  And bảng lương kỳ hiện tại vẫn trả theo giá trị đã duyệt, không chờ kết luận
+  And Tổ trưởng phải phản hồi trong 2 ngày làm việc, Chỉ huy trưởng giải quyết trong 5 ngày làm việc
+  And nếu gửi sau 7 ngày kể từ ngày công, hệ thống từ chối với httpStatus 422 và mã lỗi "DISPUTE_WINDOW_EXPIRED"
+
+Scenario AC-10-26: Quyết toán khi chấm dứt hợp đồng — không chi âm
+  Given nhân viên "ADB-E-00421" chấm dứt hợp đồng ngày 2026-10-31
+  And còn 4 ngày phép năm chưa dùng, lương cơ bản 12.000.000 đ/tháng và tạm ứng còn 2.000.000 đ
+  When Payroll Accountant chạy kỳ quyết toán loại "FINAL_SETTLEMENT"
+  Then phiếu lương phải có dòng "ANNUAL_LEAVE_PAYOUT" cho 4 ngày phép
+  And phải trừ đủ BHXH/BHYT/BHTN, thuế TNCN và khoản tạm ứng
+  And nếu kết quả net âm, phải tạo carry-forward "NEGATIVE_NET_PAY" thay vì chi trả số âm
+
+Scenario AC-10-27: Công nhân chỉ xem được phiếu lương của mình
+  Given công nhân "ADB-W-00123" đã đăng nhập ứng dụng
+  When gọi `GET /api/v1/workforce/payslips/{id}` với phiếu lương của chính mình
+  Then phải trả httpStatus 200 kèm gross, net và chi tiết từng khoản
+  When gọi cùng endpoint với phiếu lương của công nhân khác
+  Then phải trả httpStatus 403 và mã lỗi "PAYSLIP_ACCESS_DENIED"
+
+Scenario AC-10-28: Năng suất dưới định mức 12/2021 ba ngày liên tiếp
+  Given định mức "AF.11111-NC" là 0,50 giờ công/m² với norm_quantity = 1 m²
+  And tổ đội nghiệm thu 100 m² trong ngày, tương đương 50,00 giờ công định mức
+  And giờ công thực tế là 62,00 giờ
+  When hệ thống tính productivity cho ngày 2026-10-21
+  Then productivity_ratio phải là 0,8065 và variance_manhours phải là 12,00
+  And phải phân loại "CRITICAL_BELOW_NORM"
+  And sau 3 ngày liên tiếp như vậy, phải tạo task điều tra nguyên nhân gốc (không tự động trừ lương)
 ```
 
 ---
@@ -1093,8 +1150,11 @@ CREATE TABLE IF NOT EXISTS workforce_mgmt.attendance_records (
         CHECK (check_out_at IS NULL OR check_in_at IS NULL OR check_out_at > check_in_at),
     CONSTRAINT chk_attendance_minutes_sum
         CHECK (payable_minutes = regular_minutes + overtime_minutes),
+    -- night_minutes deliberately EXCLUDES overtime-night minutes (§4.1): the 200%/270%/390%
+    -- multipliers already embed the 30% night premium, so overtime_night_minutes must NOT be
+    -- required to fit inside night_minutes. Only the OT upper bound is a real invariant.
     CONSTRAINT chk_attendance_ot_night
-        CHECK (overtime_night_minutes <= overtime_minutes AND overtime_night_minutes <= night_minutes),
+        CHECK (overtime_night_minutes <= overtime_minutes),
     CONSTRAINT chk_attendance_night
         CHECK (night_minutes <= regular_minutes)
 );
@@ -1708,6 +1768,19 @@ ON CONFLICT (rule_code) DO NOTHING;
 
 `attendance_events` is the highest-volume table: 2.000 workers × 4 events/day × 300 days ≈ **2,4 triệu dòng/năm**. At that volume, a B-tree on `(project_id, captured_at)` is sufficient; if ADB exceeds 10 million events/year, convert `attendance_events` to **monthly RANGE partitioning on `captured_at`** (the unique `event_uuid` must then include the partition key). The migration must remain backward compatible: create the partitioned table, copy, swap, and keep the same API.
 
+### 6.3 DDL Validation Record
+
+| Item | Result |
+|---|---|
+| Parser | `libpg_query` via `pglast` 8.7 — the actual PostgreSQL 17 grammar (not a generic SQL linter) |
+| Statements parsed | 94 statements, **0 syntax errors** (32 tables, 27 indexes, 9 triggers, 5 functions, 2 `ALTER TABLE`) |
+| Baseline FK targets | `core_iam.users(id)`, `project_mgmt.projects(id)`, `project_mgmt.wbs_items(id)` all exist in `V1__init_schema.sql` |
+| Name collisions | No duplicate table, index, constraint or trigger names inside `workforce_mgmt` |
+| Cross-spec contract | Every TK credited by the payroll mapping (§9.2) is present in the SPEC-11 `chart_of_accounts` seed |
+| **Not yet done** | Live execution against PostgreSQL 17 (no server available in the authoring session). This remains a hard gate in §11.4, and the migration must be applied to a scratch DB before the spec is marked **Approved**. |
+
+> The DDL is declared **structurally valid**, not yet **runtime-proven**. Do not upgrade this spec to Approved on the strength of the static parse alone.
+
 ---
 
 ## 7. REST API Specification
@@ -2179,10 +2252,14 @@ ON CONFLICT (rule_code) DO NOTHING;
 | 422 | `OVERTIME_DAILY_CAP_EXCEEDED` | OT > 50% of normal day | Reduce OT |
 | 422 | `OVERTIME_MONTHLY_CAP_EXCEEDED` | OT > 40h/60h | Stop scheduling |
 | 422 | `OVERTIME_ANNUAL_CAP_EXCEEDED` | OT > 200h/300h | Stop scheduling |
+| 409 | `OT_NOT_APPROVED` | Payroll includes OT hours without an approved `overtime_requests` record | Approve the OT request, or strip the hours and recalculate |
+| — (alert) | `OVERTIME_CAP_BREACH` | Actual hours exceeded a cap; hours are still paid | HR/PD review, report to the labour inspectorate. Domain alert only — never an HTTP rejection |
 | 422 | `ALLOCATION_NOT_100_PERCENT` | Allocation sum ≠ 100% | Fix allocation |
 | 422 | `NEGATIVE_NET_PAY` | Deductions exceed gross | Carry forward |
 | 422 | `MINIMUM_WAGE_VIOLATION` | Base salary below regional floor | Adjust salary |
 | 422 | `INVALID_STATE_TRANSITION` | Illegal status change | Refresh + follow workflow |
+| 403 | `PAYSLIP_ACCESS_DENIED` | Worker requested a payslip that is not their own | Request only your own payslip |
+| 422 | `DISPUTE_WINDOW_EXPIRED` | Dispute raised more than 7 days after the work date | Escalate to HR for an exception decision |
 
 ---
 
@@ -2306,10 +2383,10 @@ The module follows the ADB dark-slate enterprise design system (see `skills/ente
 |---|---|---|---|---|
 | Accrue gross payroll (direct labour) | `622` | `334` | `LABOR` | Split by project/WBS via `payroll_cost_allocations` |
 | Accrue gross payroll (indirect labour) | `627` | `334` | `OVERHEAD` | Site office, supervision |
-| Employee deductions | `334` | `3383`, `3384`, `3389`, `3335`, `3382` | — | BHXH/BHYT/BHTN, PIT, union |
+| Employee deductions | `334` | `3383`, `3384`, `3389`, `3335`, `3382` | — | BHXH/BHYT/BHTN, PIT (TK 3335), union fee (TK 3382) |
 | Net pay | `334` | `112` / `111` | — | Bank transfer or cash |
-| Employer contributions (direct) | `622` | `3383`, `3384`, `3389` | `LABOR` | 21,5% |
-| Employer contributions (indirect) | `627` | `3383`, `3384`, `3389` | `OVERHEAD` | 21,5% |
+| Employer contributions (direct) | `622` | `3383`, `3386`, `3384`, `3389` | `LABOR` | 21,5% = 17,0% + 0,5% + 3,0% + 1,0% |
+| Employer contributions (indirect) | `627` | `3383`, `3386`, `3384`, `3389` | `OVERHEAD` | 21,5% |
 | Piece-rate top-up | `622` | `334` | `LABOR` | Only for direct employees |
 | Severance / job-loss allowance | `622` (or `627`) | `334` | `LABOR` | Per Labour Code Articles 46–47 |
 
