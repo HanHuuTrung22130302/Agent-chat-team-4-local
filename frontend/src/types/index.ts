@@ -1,3 +1,7 @@
+// ==========================================
+// ÁNH DƯƠNG BUILDING ERP — ENTERPRISE TYPE SYSTEM
+// ==========================================
+
 export interface Project {
   id: number;
   code: string;
@@ -25,6 +29,8 @@ export interface WBSItem {
   weightPercentage: number;
   progressPercentage: number;
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  normCode?: string;
+  criticalPath?: boolean;
   children?: WBSItem[];
 }
 
@@ -82,6 +88,7 @@ export interface PaymentCertificate {
   id: number;
   certificateNumber: string;
   subcontractId: number;
+  subcontractorName?: string;
   periodNumber: number;
   billingStartDate: string;
   billingEndDate: string;
@@ -157,22 +164,6 @@ export interface Equipment {
   safetyInspectionExpiry: string;
 }
 
-export interface EquipmentLog {
-  id: number;
-  logNumber: string;
-  equipmentId: number;
-  logDate: string;
-  operatorName: string;
-  startEngineHour: number;
-  endEngineHour: number;
-  workedHours: number;
-  fuelIssuedLiters: number;
-  expectedFuelLiters: number;
-  fuelVarianceRate: number;
-  workDescription: string;
-  alertFlag: 'NORMAL' | 'OVER_CONSUMPTION' | 'CRITICAL';
-}
-
 export interface SteelComponent {
   id: number;
   componentMark: string;
@@ -194,9 +185,7 @@ export interface SteelComponent {
   erectedBy?: string;
 }
 
-// ==========================================
-// 08. QA/QC QUALITY CONTROL (Nghị định 06/2021/NĐ-CP)
-// ==========================================
+// 08. QA/QC Quality Management
 export interface QAQCInspection {
   id: number;
   projectId: number;
@@ -228,18 +217,6 @@ export interface ConcreteTestSample {
   status: 'TESTING' | 'PASSED' | 'FAILED';
 }
 
-export interface WeldNDTReport {
-  id: number;
-  projectId: number;
-  weldJointId: string;
-  method: 'UT' | 'MT' | 'RT' | 'VT';
-  acceptanceStandard: string;
-  testedBy: string;
-  defectDetected: boolean;
-  defectType?: string;
-  status: 'ACCEPTED' | 'REJECTED' | 'REPAIRED_AND_PASSED';
-}
-
 export interface NCRReport {
   id: number;
   ncrNumber: string;
@@ -255,9 +232,7 @@ export interface NCRReport {
   status: 'OPEN' | 'IN_PROGRESS' | 'VERIFIED_CLOSED';
 }
 
-// ==========================================
-// 09. HSE SITE SAFETY & PERMIT TO WORK (PTW)
-// ==========================================
+// 09. HSE Site Safety
 export interface PermitToWork {
   id: number;
   ptwNumber: string;
@@ -299,3 +274,76 @@ export interface ToolboxMeeting {
   keyHazardsDiscussed: string;
 }
 
+// 10 & 11. Workforce & Financial WIP
+export interface WorkerAttendance {
+  id: number;
+  workerName: string;
+  trade: 'STEEL' | 'CONCRETE' | 'FORMWORK' | 'WELDING' | 'MEP' | 'GENERAL';
+  teamName: string;
+  checkInTime: string;
+  checkOutTime?: string;
+  gpsVerified: boolean;
+  faceMatched: boolean;
+  status: 'PRESENT' | 'OVERTIME' | 'ABSENT';
+}
+
+export interface ProjectWIPAccounting {
+  projectId: number;
+  contractValue: number;
+  cumulativeCost: number;
+  actualCostIncurred: number;
+  estimateAtCompletion: number;
+  pocPercentage: number;
+  recognizedRevenue: number;
+  unbilledReceivables: number;
+  costMaterial621: number;
+  costLabor622: number;
+  costEquipment623: number;
+  costOverhead627: number;
+}
+
+// 12. FIDIC Claims & Variation Orders
+export interface VariationOrder {
+  id: number;
+  voNumber: string;
+  projectId: number;
+  title: string;
+  scopeDescription: string;
+  proposedAmount: number;
+  approvedAmount?: number;
+  timeExtensionDays: number;
+  initiator: 'CLIENT' | 'CONTRACTOR' | 'ENGINEER';
+  status: 'PROPOSED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+}
+
+export interface FidicClaim {
+  id: number;
+  claimNumber: string;
+  clause: 'CLAUSE_20.1' | 'CLAUSE_8.4_EOT' | 'CLAUSE_13.3_VARIATION';
+  eventDescription: string;
+  noticeDate: string;
+  detailedParticularsDate: string;
+  daysRemainingBeforeTimeBar: number;
+  claimedExtensionDays: number;
+  claimedAmount: number;
+  engineerDeterminationStatus: 'SUBMITTED' | 'CONSULTATION' | 'DETERMINED' | 'DISPUTED';
+}
+
+// Executive Dashboard Models
+export interface ExecutiveSCurvePoint {
+  month: string;
+  plannedCumulativePct: number;
+  actualCumulativePct: number;
+  costCumulativeVndBillion: number;
+  earnedValueVndBillion: number;
+}
+
+export interface PendingApprovalItem {
+  id: string;
+  type: 'PPC' | 'MR' | 'PTW' | 'RFI' | 'VO';
+  title: string;
+  requester: string;
+  amountOrScale: string;
+  submittedAt: string;
+  priority: 'HIGH' | 'CRITICAL' | 'NORMAL';
+}

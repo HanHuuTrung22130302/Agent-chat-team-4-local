@@ -11,6 +11,8 @@ import { EquipmentFleetModule } from './components/modules/EquipmentFleetModule'
 import { WinSteelFactoryModule } from './components/modules/WinSteelFactoryModule';
 import { QAQCModule } from './components/modules/QAQCModule';
 import { HSEModule } from './components/modules/HSEModule';
+import { WorkforceWIPModule } from './components/modules/WorkforceWIPModule';
+import { FidicClaimsVOModule } from './components/modules/FidicClaimsVOModule';
 import { CreateProjectModal } from './components/modals/CreateProjectModal';
 import { ActionModal } from './components/modals/ActionModal';
 
@@ -39,10 +41,11 @@ import {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('projects');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  // Sub-data for selected project
+  // Project-specific data
   const [wbsItems, setWbsItems] = useState<WBSItem[]>([]);
   const [diaries, setDiaries] = useState<DailySiteDiary[]>([]);
   const [subcontracts, setSubcontracts] = useState<Subcontract[]>([]);
@@ -50,7 +53,7 @@ export default function App() {
   const [evmData, setEvmData] = useState<EVMAnalysis | null>(null);
   const [stockBalances, setStockBalances] = useState<StockBalance[]>([]);
   
-  // Global registries
+  // Enterprise catalogs
   const [subcontractors, setSubcontractors] = useState<Subcontractor[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -94,7 +97,6 @@ export default function App() {
     initClusterData();
   }, []);
 
-  // Load project-specific sub-data
   const loadProjectDetails = async (project: Project) => {
     setSelectedProject(project);
     try {
@@ -141,23 +143,33 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden">
+    <div className={`flex h-screen font-sans antialiased overflow-hidden transition-colors duration-200 ${
+      isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
+    }`}>
       {/* 1. Left Sidebar Navigation */}
-      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        onSelectTab={setActiveTab} 
+        isDarkMode={isDarkMode} 
+      />
 
       {/* 2. Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
+        {/* Top Header with Theme Switcher */}
         <Header
           projects={projects}
           selectedProject={selectedProject}
           onSelectProject={handleSelectProject}
           onOpenCreateModal={() => setShowCreateModal(true)}
           onOpenActionModal={() => setShowActionModal(true)}
+          isDarkMode={isDarkMode}
+          onToggleTheme={() => setIsDarkMode(prev => !prev)}
         />
 
         {/* Dynamic Workspace Container */}
-        <main className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-950">
+        <main className={`flex-1 overflow-y-auto p-6 custom-scrollbar transition-colors duration-200 ${
+          isDarkMode ? 'bg-slate-950' : 'bg-slate-50'
+        }`}>
           {/* Toast Notification */}
           {toastMessage && (
             <div className="mb-4 p-3 bg-emerald-950/90 border border-emerald-800 rounded-xl text-xs font-semibold text-emerald-300 shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
@@ -168,7 +180,7 @@ export default function App() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-3">
-              <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
               <p className="text-xs font-semibold text-slate-400">
                 Đang nạp dữ liệu Ánh Dương ERP từ PostgreSQL 192.168.1.50...
               </p>
@@ -181,6 +193,7 @@ export default function App() {
                   selectedProject={selectedProject}
                   onSelectProject={handleSelectProject}
                   onOpenCreateModal={() => setShowCreateModal(true)}
+                  isDarkMode={isDarkMode}
                 />
               )}
 
@@ -242,6 +255,28 @@ export default function App() {
               {activeTab === 'hse' && (
                 <HSEModule
                   project={selectedProject}
+                  isDarkMode={isDarkMode}
+                />
+              )}
+
+              {activeTab === 'workforce' && (
+                <WorkforceWIPModule
+                  project={selectedProject}
+                  isDarkMode={isDarkMode}
+                />
+              )}
+
+              {activeTab === 'wip' && (
+                <WorkforceWIPModule
+                  project={selectedProject}
+                  isDarkMode={isDarkMode}
+                />
+              )}
+
+              {activeTab === 'claims' && (
+                <FidicClaimsVOModule
+                  project={selectedProject}
+                  isDarkMode={isDarkMode}
                 />
               )}
             </>
