@@ -85,7 +85,7 @@ f4d8992 2026-10-21 00:29  feat(ui-ux): Complete enterprise redesign ... 12-modul
 
 > **Lưu ý đồng thời:** trong lúc kiểm tra, SPEC-10/11 đã được commit (`7a68110`) và frontend được nâng lên 12 module (`f4d8992`). Báo cáo này phản ánh trạng thái **sau** hai commit đó. Không có xung đột file: BA chỉ sửa 1 dòng trong SPEC-10 và thêm thư mục `docs/reports/`.
 >
-> Rủi ro còn lại: frontend Module 10–12 đang dùng mock data; nếu backend không sớm thay thế, demo sẽ "xanh giả" trong khi tích hợp thật thất bại.
+> Rủi ro còn lại: frontend Module 08–12 đang gọi API chưa tồn tại (QAQC/HSE fallback mock, Workforce/Claims mock hoàn toàn); nếu backend không sớm thay thế, demo sẽ "xanh giả" trong khi tích hợp thật thất bại.
 
 ---
 
@@ -261,6 +261,7 @@ f4d8992 2026-10-21 00:29  feat(ui-ux): Complete enterprise redesign ... 12-modul
 | **TASK-037** | Developer | V7 Workforce + check-in/payroll core | 7 ngày | TASK-033 | Flyway V7; test idempotency; consent gate |
 | **TASK-038** | Developer | V8 WIP/POC + journal posting | 7 ngày | TASK-037 | Flyway V8; golden dataset 12 kỳ |
 | **TASK-039** | Tester | Bộ test AC-08→AC-11 + DDL regression CI | 5 ngày | TASK-036…038 | ≥80% coverage; 85 AC mapped |
+| **TASK-040** | Developer | V9 Claims/EOT/VO + thay mock `claimsApi` | 6 ngày | TASK-034 | Flyway V9; DTO khớp §A.8; notice 28 ngày + determination 42 ngày |
 
 ### 5.3 Rủi ro Sprint
 
@@ -269,7 +270,8 @@ f4d8992 2026-10-21 00:29  feat(ui-ux): Complete enterprise redesign ... 12-modul
 | Số hiệu module tiếp tục drift | High | High | TASK-033 là gate cứng, không bắt đầu TASK-034 trước khi có quyết định |
 | Developer làm V7 trước V6 gây lệch frontend | Medium | High | Thứ tự V6 → V7 → V8; frontend contract test |
 | 18 open questions bị bỏ qua | Medium | Critical (lương/POC sai) | Default phải được duyệt bằng văn bản; cấm hard-code |
-| Spec 320KB chưa commit bị mất | Low | High | Commit ngay sau review |
+| Spec 320KB chưa commit bị mất | Low | High | **Đã xử lý** — SPEC-10/11 nằm trong commit `7a68110` |
+| Frontend fallback mock che giấu lỗi tích hợp | High | High | Bỏ fallback ở dev/staging; contract test với backend thật |
 | DDL defect tái phát | Medium | High | GAP-032-08: CI migrate trên DB ephemeral |
 
 ---
