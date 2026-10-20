@@ -180,7 +180,14 @@ class CreateTaskRequest(BaseModel):
 
 @app.post("/api/tasks")
 async def create_task(req: CreateTaskRequest):
-    task_id = f"TASK-{len(storage.tasks) + 1:03d}"
+    max_id = 0
+    for tid in storage.tasks.keys():
+        if tid.startswith("TASK-"):
+            try:
+                max_id = max(max_id, int(tid.split("-")[1]))
+            except (IndexError, ValueError):
+                pass
+    task_id = f"TASK-{max_id + 1:03d}"
     task = TaskItem(
         task_id=task_id,
         title=req.title,

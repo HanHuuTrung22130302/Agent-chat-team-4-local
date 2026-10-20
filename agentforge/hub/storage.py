@@ -61,6 +61,25 @@ class HubStorage:
                     );
                 """)
             logger.info("Connected to PostgreSQL and verified tables.")
+            
+            # Load existing tasks and agents from DB into memory
+            async with self.pool.acquire() as conn:
+                task_rows = await conn.fetch("SELECT * FROM tasks ORDER BY created_at ASC")
+                for r in task_rows:
+                    self.tasks[r["task_id"]] = TaskItem(
+                        task_id=r["task_id"],
+                        project_id=r["project_id"],
+                        title=r["title"],
+                        description=r["description"] or "",
+                        assigned_role=r["assigned_role"] or "lead",
+                        assigned_agent_id=r["assigned_agent_id"],
+                        status=r["status"] or "pending",
+                        priority=r["priority"] or "medium",
+                        branch=r["branch"],
+                        commit_sha=r["commit_sha"],
+                        created_at=r["created_at"].isoformat() if r["created_at"] else None
+                    )
+            logger.info(f"Loaded {len(self.tasks)} existing tasks from PostgreSQL.")
         except Exception as e:
             logger.warning(f"PostgreSQL connection failed: {e}. Running with in-memory storage fallback.")
 
