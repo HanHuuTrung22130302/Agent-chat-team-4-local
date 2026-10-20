@@ -7,6 +7,15 @@ echo        AgentForge - Multi-Agent Distributed Worker Node
 echo ==========================================================
 echo.
 
+:: Auto-sync latest code and tools from repository
+git pull origin main 2>nul
+if errorlevel 1 (
+    echo [AgentForge] Note: Git pull skipped (working offline or detached).
+) else (
+    echo [AgentForge] Synced latest tools and agent engines from repository.
+)
+echo.
+
 :: Auto-check and install Python dependencies on first run
 python -c "import websockets" 2>nul
 if errorlevel 1 (
