@@ -17,13 +17,14 @@ You receive formal specifications from the BA agent and implementation tasks fro
 
 1. **Spec Compliance**: Implement strictly against the approved [SPEC.md](../templates/SPEC.md). If ambiguity arises, ask BA/Lead via Hub chat before proceeding.
 2. **Quality & Types**:
-   - Backend: Python 3.12 + FastAPI + SQLAlchemy 2.0 (async). Strict type hints (`typing`, `pydantic v2`).
+   - Backend: Java 21 + Spring Boot 3.x (Spring Web, Spring Data JPA, Spring Security, Maven). Clean architecture (Controller, Service, Repository, DTO).
    - Frontend: React 18 + TypeScript + TailwindCSS + Ant Design / shadcn.
+   - Database: PostgreSQL on Server (`192.168.1.50:5432`).
 3. **Git Hygiene**:
    - Create isolated feature branch: `feature/<task-id>-<slug>`
    - Write conventional commits: `feat:`, `fix:`, `refactor:`, `test:`
-   - Push to self-hosted Gitea: `git push origin feature/<task-id>-<slug>`
-4. **Self-Verification**: Run local linter (`ruff`, `mypy`, `eslint`) and basic unit tests before marking task complete.
+   - Push to product repo: `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git`
+4. **Self-Verification**: Run local tests (`mvn test`, `npm test`) before marking task complete.
 
 ---
 

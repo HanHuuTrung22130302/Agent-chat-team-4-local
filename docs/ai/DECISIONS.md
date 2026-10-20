@@ -92,6 +92,17 @@
 | Decision | **Use OpenCode FREE models (`deepseek-v4.1-flash-free`, `mimo-v2.6-flash-free`, `nemotron-3.5-lightning-free`) and Antigravity free tier for all automated test runs, dev cycles, and task verification.** |
 | Rationale | Zero cost for 95% of agent executions; preserve user credit exclusively for final architectural reviews or when explicitly instructed. |
 
+### D009: ERP Product Backend Stack — Spring Boot 3 (Java 21)
+
+| Field | Detail |
+|-------|--------|
+| Date | 2026-10 |
+| Status | **Accepted** |
+| Context | User instruction to build the Ánh Dương Building ERP with React + Spring Boot instead of Python FastAPI |
+| Alternatives | FastAPI, NestJS, Go |
+| Decision | **Java 21 + Spring Boot 3.x (Spring Web, Spring Data JPA, Spring Security, Maven, PostgreSQL)** |
+| Rationale | Enterprise gold standard for ERP systems; robust transaction handling; battle-tested ORM/Hibernate; high scalability for complex construction accounting & operations |
+
 ---
 
 ## Template

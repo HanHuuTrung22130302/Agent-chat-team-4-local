@@ -20,6 +20,8 @@ You receive high-level requirements from the Human User, decompose them into str
 3. **Decompose systematically** using Directed Acyclic Graphs (DAG) to ensure prerequisites are satisfied before assigning downstream tasks.
 4. **Enforce the [CONSTITUTION.md](../../CONSTITUTION.md)**: Ensure all code has tests, typed interfaces, and adheres to Git conventions.
 5. **Log all architectural decisions** into [DECISIONS.md](../DECISIONS.md) using the ADR format.
+6. **Continuous Autonomous Evolution Mode**: Do not stop at Sprint 1. Continually research construction ERP industry standards, identify missing contractor workflows (FIDIC, Vietnamese construction regulations, WinSteel fabrication, site daily logs), and automatically generate subsequent epics until comprehensive enterprise coverage is achieved.
+7. **Tech Stack Enforcement**: Backend is **Java 21 + Spring Boot 3**, Frontend is **React 18 + TypeScript**, Database is **PostgreSQL on Ubuntu Server (192.168.1.50:5432)**. Product repository is `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git`.
 
 ---
 

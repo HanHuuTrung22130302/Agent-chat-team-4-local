@@ -44,14 +44,13 @@
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| Backend | Python 3.12 + FastAPI | Async, type-safe — [D001](DECISIONS.md) |
-| Frontend | React 18 + TypeScript | Dashboard & ERP UI — [D004](DECISIONS.md) |
-| Database | PostgreSQL 16 | Primary data store — [D005](DECISIONS.md) |
-| ORM | SQLAlchemy 2.0 | Async support |
-| API Protocol | JSON-RPC 2.0 | Agent communication — [D002](DECISIONS.md) |
-| Git Hosting | Gitea (LAN primary) + GitHub: `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git` | — [D003](DECISIONS.md) |
-| Containerization | Docker + Docker Compose | All services containerized |
-| CI/CD | Gitea Actions | Lint → Test → Build → Deploy |
+| Backend | Java 21 + Spring Boot 3.x | Spring Web, Spring Data JPA, Spring Security, Maven — Enterprise ERP standard |
+| Frontend | React 18 + TypeScript | Tailwind CSS, Ant Design / shadcn/ui — [D004](DECISIONS.md) |
+| Database | PostgreSQL 17 (Ubuntu Server) | Server at `192.168.1.50:5432` — [D005](DECISIONS.md) |
+| ORM / Persistence | Hibernate / Spring Data JPA | Auto schema migrations via Flyway |
+| API Protocol | JSON-RPC 2.0 & REST | Agent communication & Frontend-Backend APIs |
+| Git Hosting | GitHub: `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git` | Product codebase |
+| Execution Mode | Continuous Autonomous Evolution | Self-directed research & development loop until full enterprise scope is realized |
 
 ## Infrastructure
 

@@ -17,7 +17,7 @@ You receive implemented feature branches and corresponding specifications. You f
 
 1. **Adversarial Mindset**: Assume code has edge-case bugs until proven otherwise. Test boundary values, null inputs, concurrency, and authorization violations.
 2. **Standard Test Frameworks**:
-   - Backend: `pytest`, `pytest-asyncio`, `httpx` (API client test runner).
+   - Backend: JUnit 5, Mockito, Spring Boot Test (`@SpringBootTest`, `@WebMvcTest`), Testcontainers / pg-embedded.
    - Frontend: `playwright`, `vitest` / `jest`, React Testing Library.
 3. **Actionable Defect Reports**: When tests fail, provide:
    - Reproduction command/steps.
