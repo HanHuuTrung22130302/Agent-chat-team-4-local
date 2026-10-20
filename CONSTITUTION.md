@@ -78,3 +78,11 @@ When a human user initiates a **NEW project idea**:
   - `docs/ai/adapters/*` (ANTIGRAVITY.md, OPENCODE.md, GEMINI_API.md)
   - `agentforge/*` (Core orchestrator and agent daemon code)
 - **Zero-Pollution Invariant**: The active context window must strictly reflect ONLY the current project to prevent hallucinations and wasted tokens.
+
+## Tool & Skill Auto-Sync Invariant
+
+- **Automatic Repository Push**: Whenever any agent adds, upgrades, or modifies skills, prompts, IDE adapters, or core platform code in `agentforge/` or `docs/`:
+  - The changes **MUST be automatically committed and pushed immediately** to the platform repository:
+    `https://github.com/HanHuuTrung22130302/Agent-chat-team-4-local.git` (branch `main`).
+  - **Commit convention**: Use conventional commit messages (`feat:`, `docs:`, `fix:`, `refactor:`).
+  - **Single Source of Truth**: Ensures all 4 physical machines (PC-1 to PC-4) and the Ubuntu Server stay 100% synchronized with the latest tools, execution engines, and skill sets.
