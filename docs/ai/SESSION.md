@@ -76,3 +76,38 @@
 3. Tester (TASK-024) viết `ConcreteStrengthServiceTest` & `PermitToWorkServiceTest` theo AC-08-01/02/03 và AC-09-01/02/03.
 4. Lead: `MASTER_ROADMAP.md` nên được ghi chú là đã bị `ENTERPRISE_ARCHITECTURE_ROADMAP.md` thay thế để tránh trích dẫn sai số hiệu phân hệ.
 
+---
+
+## Session: 2026-10-21 (TASK-025 — Đặc tả Module 10 Nhân lực & Module 11 Kế toán WIP/POC)
+
+### Summary
+- **Deliverables (BA Agent, PC-4 `ba-hant_lap`)**:
+  - `docs/specs/SPEC-10-WORKFORCE-ATTENDANCE.md` — Module 10 Nhân lực, Chấm công FaceID/GPS & Bảng lương:
+    22 User Stories → 24 Gherkin AC; 9 quy trình (vòng đời chấm công ngày, cây quyết định FaceID + GPS, offline sync idempotent, làm thêm giờ với trần luật định, tổ đội khoán, đóng bảng lương & hạch toán GL, tranh chấp công, vòng đời đồng thuận sinh trắc học theo NĐ 13/2023, audit trail);
+    PostgreSQL DDL schema `workforce_mgmt` (**32 bảng**, `V7__create_workforce_tables.sql`); 27 REST endpoint; 4 màn hình UI.
+  - `docs/specs/SPEC-11-WIP-ACCOUNTING.md` — Module 11 Kế toán chi phí dở dang (TK 154), doanh thu POC & đối chiếu nghiệm thu:
+    24 User Stories → 24 Gherkin AC; 9 quy trình (tích lũy chi phí, đóng kỳ tháng, tính/duyệt POC, doanh thu–hóa đơn–TK 337, FIDIC IPC, EAC & lỗ dự kiến, sửa sai bằng đảo bút toán, đối chiếu thuế, Variation Order);
+    PostgreSQL DDL schema `accounting_mgmt` (**24 bảng**, `V8__create_wip_accounting_tables.sql`); 35 REST endpoint; 5 màn hình UI.
+
+### Decisions Made
+- [x] Tách `employees` (đối tượng lương ADB) khỏi `workers` (danh tính công trường, gồm cả thầu phụ) — chấm công thầu phụ phục vụ FIDIC/HSE/PPC nhưng không vào bảng lương ADB.
+- [x] FaceID/GPS theo NĐ 13/2023: không theo dõi nền, đồng thuận trước, xóa template khi rút đồng thuận, lưu ảnh 90 ngày.
+- [x] POC ba phương pháp (`COST_TO_COST`, `SURVEY_CERTIFIED`, `MILESTONE`); WIP = chi phí phát sinh − POC × EAC; TK 337 là cầu nối doanh thu và hóa đơn.
+- [x] Lỗ dự kiến ghi nhận ngay theo VAS 15 đoạn 36; giữ lại bảo hành 3–5% theo NĐ 06/2021; thu hồi tạm ứng có trần; sửa sai chỉ bằng đảo bút toán.
+- [x] Chi phí từ module khác chỉ gửi **cost transaction**, SPEC-11 sở hữu toàn bộ bút toán và khóa kỳ.
+- [x] Ghi rõ xung đột đánh số: TASK-025 dùng Module 10 = Nhân lực, Module 11 = WIP; roadmap gọi WIP là Phân hệ 10.
+
+### Verification
+- Cấu trúc đủ 11 mục theo `docs/ai/templates/SPEC.md`; không còn marker tạm.
+- 26 khối JSON trong SPEC-11 parse thành công bằng `json.loads`; 104 dấu code fence cân bằng.
+- Rà soát thủ công DDL: sửa trigger `trg_journal_balance` để chặn `INSERT` trực tiếp trạng thái `POSTED` (trước đó có thể bỏ qua kiểm tra cân đối); thống nhất cờ `is_postable` cho TK 131/154 với ma trận bút toán.
+- Kiểm tra cú pháp DDL bằng `pglast 8.7` (libpg_query PostgreSQL 17): SPEC-10 **94 câu lệnh OK**, SPEC-11 **87 câu lệnh OK**, 0 lỗi cú pháp.
+- **Chưa execute DDL trên PostgreSQL thật** (khác TASK-022). Cần Developer/Tester chạy `V7` + `V8` trên database tạm trước khi lập trình.
+
+### Next Recommended Actions
+1. Lead review & duyệt SPEC-10 / SPEC-11; trả lời câu hỏi mở §11.3 (POC method mặc định, thẩm quyền duyệt EAC, retention 3% hay 5%, tỷ giá USD).
+2. Tester/Developer chạy `V7` + `V8` trên PostgreSQL 17 tạm; xác nhận 56 bảng, trigger, seed tài khoản và các generated column.
+3. Developer hiện thực `V7` + `V8` cùng package `com.anhduongbuilding.erp.workforce` / `.accounting`; ưu tiên cost ingestion idempotent và POC cost-to-cost.
+4. Tester xây golden dataset 12 kỳ-dự án (gồm 1 dự án lỗ dự kiến, 1 dự án survey) đối chiếu Excel do Kế toán trưởng ký.
+
+
