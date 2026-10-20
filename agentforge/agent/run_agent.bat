@@ -29,30 +29,30 @@ if not "%1"=="" (
 )
 
 echo Select the role for this computer:
-echo [1] Lead / Architect     (PC-3: OpenCode - DeepSeek v4 Pro / Free)
+echo [1] Lead / Architect     (PC-3: Antigravity Pro Jio - Gemini 3.8 Flash / Claude Opus)
 echo [2] BA / Spec Writer     (PC-4: Antigravity Pro Jio - Gemini 3.8 Flash / Claude Opus)
-echo [3] Developer            (PC-1: OpenCode - DeepSeek v4.1 Flash Free)
-echo [4] Tester / QA          (PC-2: OpenCode - Beam Free / MiMo Free)
+echo [3] Developer            (PC-1: Antigravity / OpenCode - Free)
+echo [4] Tester / QA          (PC-2: Antigravity / OpenCode - Free)
 echo.
 
 set /p choice="Enter choice [1-4] (Default 3): "
 
 if "%choice%"=="1" (
     set ROLE=lead
-    set ENGINE=opencode
-    set MODEL=opencode/deepseek-v4.1-flash-free
+    set ENGINE=antigravity
+    set MODEL=gemini-3.8-flash-high
 ) else if "%choice%"=="2" (
     set ROLE=ba
     set ENGINE=antigravity
     set MODEL=gemini-3.8-flash-high
 ) else if "%choice%"=="4" (
     set ROLE=tester
-    set ENGINE=opencode
-    set MODEL=opencode/beam-free
+    set ENGINE=antigravity
+    set MODEL=gemini-3.8-flash-high
 ) else (
     set ROLE=developer
-    set ENGINE=opencode
-    set MODEL=opencode/deepseek-v4.1-flash-free
+    set ENGINE=antigravity
+    set MODEL=gemini-3.8-flash-high
 )
 
 :START

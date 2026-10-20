@@ -163,10 +163,15 @@ Please analyze the requirements and complete the assigned task. Output clear, pr
             loop = asyncio.get_running_loop()
             output = await loop.run_in_executor(None, active_engine.execute, prompt)
             
-            # Send completion
-            summary = output[:300] + "..." if len(output) > 300 else output
-            await self.send_complete(task_id, summary)
-            logger.info(f"Task {task_id} completed successfully via {task_engine_name}!")
+            # Check for error outputs from engine
+            if output.startswith("[OpenCode Error]") or output.startswith("[Antigravity Error]") or output.startswith("[Execution Exception]") or output.startswith("[QUOTA_EXHAUSTED]"):
+                logger.error(f"Task {task_id} failed: {output}")
+                await self.send_failed(task_id, output)
+            else:
+                # Send completion
+                summary = output[:300] + "..." if len(output) > 300 else output
+                await self.send_complete(task_id, summary)
+                logger.info(f"Task {task_id} completed successfully via {task_engine_name}!")
             
         except Exception as e:
             logger.error(f"Task {task_id} execution error: {e}")

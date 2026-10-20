@@ -57,9 +57,24 @@ class OpenCodeEngine:
                 return f"[QUOTA_EXHAUSTED]: {err_msg}"
 
             logger.error(f"OpenCode error: {err_msg}")
+            
+            # Smart Engine Fallback: If OpenCode fails (e.g. expired key or missing), auto-try Antigravity if available
+            agy_cmd = shutil.which("agy") or shutil.which("agy.exe")
+            if agy_cmd:
+                logger.info(f"==> Auto-fallback to Antigravity CLI (gemini-3.8-flash-high) due to OpenCode error...")
+                agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
+                agy_output = agy_engine.execute(prompt)
+                if not agy_output.startswith("[") or "Notice:" in agy_output:
+                    return f"[Notice: Auto-switched to Antigravity (gemini-3.8-flash-high) because OpenCode failed: {err_msg[:80]}]\n\n" + agy_output
+            
             return f"[OpenCode Error]: {err_msg}"
         except Exception as e:
             logger.error(f"OpenCode execution failed: {e}")
+            agy_cmd = shutil.which("agy") or shutil.which("agy.exe")
+            if agy_cmd:
+                logger.info(f"==> Auto-fallback to Antigravity CLI (gemini-3.8-flash-high) due to OpenCode exception...")
+                agy_engine = AntigravityEngine(default_model="gemini-3.8-flash-high")
+                return agy_engine.execute(prompt)
             return f"[Execution Exception]: {e}"
 
 class AntigravityEngine:
@@ -87,16 +102,19 @@ class AntigravityEngine:
 
             if is_quota_error(err_msg) or is_quota_error(output):
                 logger.warning(f"[QUOTA ALERT] Antigravity model [{target_model}] hit quota! Error: {err_msg}")
-                if target_model != self.fallback_model:
-                    logger.info(f"==> Auto-fallback to default [{self.fallback_model}]...")
+                fallbacks = ["gemini-3.8-flash-high", "gemini-3.8-flash-medium", "gpt-oss-120b-medium"]
+                for fb in fallbacks:
+                    if fb == target_model:
+                        continue
+                    logger.info(f"==> Auto-fallback to [{fb}]...")
                     fallback_result = subprocess.run(
-                        [self.cmd, "-p", prompt, "--model", self.fallback_model, "--dangerously-skip-permissions"],
+                        [self.cmd, "-p", prompt, "--model", fb, "--dangerously-skip-permissions"],
                         capture_output=True,
                         text=True,
                         timeout=300
                     )
-                    if fallback_result.returncode == 0:
-                        return f"[Notice: Auto-switched to {self.fallback_model} due to quota limit]\n\n" + fallback_result.stdout.strip()
+                    if fallback_result.returncode == 0 and not is_quota_error(fallback_result.stdout):
+                        return f"[Notice: Auto-switched to {fb} due to quota limit on {target_model}]\n\n" + fallback_result.stdout.strip()
 
                 return f"[QUOTA_EXHAUSTED]: {err_msg}"
 
