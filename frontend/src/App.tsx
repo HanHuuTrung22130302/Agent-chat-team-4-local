@@ -59,6 +59,7 @@ export default function App() {
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [showActionModal, setShowActionModal] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Initial Data Load
@@ -126,23 +127,17 @@ export default function App() {
     loadProjectDetails(project);
   };
 
-  const handleCreateProject = (newProjectData: Partial<Project>) => {
-    const created: Project = {
-      id: projects.length + 1,
-      code: newProjectData.code || `DA-ADB-2026-${String(projects.length + 1).padStart(3, '0')}`,
-      name: newProjectData.name || 'Dự án Mới',
-      clientName: newProjectData.clientName || 'Chủ Đầu Tư Mới',
-      location: newProjectData.location || 'Bình Dương, Việt Nam',
-      projectType: newProjectData.projectType || 'INDUSTRIAL_FACTORY',
-      contractValue: Number(newProjectData.contractValue) || 100000000000,
-      startDate: newProjectData.startDate || new Date().toISOString().split('T')[0],
-      plannedEndDate: newProjectData.plannedEndDate || '2026-12-31',
-      progressPercentage: 0,
-      status: 'PLANNING'
-    };
+  const handleCreateProject = (newProject: Project) => {
+    setProjects(prev => [newProject, ...prev]);
+    setSelectedProject(newProject);
+    setShowCreateModal(false);
+    setToastMessage(`Đã khởi tạo thành công dự án mới: ${newProject.code} - ${newProject.name}!`);
+    setTimeout(() => setToastMessage(null), 5000);
+  };
 
-    setProjects(prev => [created, ...prev]);
-    setSelectedProject(created);
+  const handleActionSuccess = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 5000);
   };
 
   return (
@@ -163,6 +158,14 @@ export default function App() {
 
         {/* Dynamic Workspace Container */}
         <main className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-950">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="mb-4 p-3 bg-emerald-950/90 border border-emerald-800 rounded-xl text-xs font-semibold text-emerald-300 shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+              <span>{toastMessage}</span>
+              <button onClick={() => setToastMessage(null)} className="text-emerald-400 hover:text-white ml-3">✕</button>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-3">
               <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
@@ -175,6 +178,7 @@ export default function App() {
               {activeTab === 'projects' && (
                 <ProjectDashboard
                   projects={projects}
+                  selectedProject={selectedProject}
                   onSelectProject={handleSelectProject}
                   onOpenCreateModal={() => setShowCreateModal(true)}
                 />
@@ -197,14 +201,14 @@ export default function App() {
 
               {activeTab === 'boq' && (
                 <BOQEVMModule
-                  project={selectedProject}
+                  projectId={selectedProject?.id || 1}
                   evmData={evmData}
                 />
               )}
 
               {activeTab === 'subcontractors' && (
                 <SubcontractorPPCModule
-                  project={selectedProject}
+                  subcontractors={subcontractors}
                   subcontracts={subcontracts}
                   certificates={certificates}
                 />
@@ -212,7 +216,6 @@ export default function App() {
 
               {activeTab === 'inventory' && (
                 <MaterialWarehouseModule
-                  project={selectedProject}
                   stockBalances={stockBalances}
                   materials={materials}
                 />
@@ -250,15 +253,13 @@ export default function App() {
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreate={handleCreateProject}
+        onCreateProject={handleCreateProject}
       />
 
       <ActionModal
         isOpen={showActionModal}
         onClose={() => setShowActionModal(false)}
-        project={selectedProject}
-        materials={materials}
-        equipments={equipments}
+        onSuccess={handleActionSuccess}
       />
     </div>
   );
