@@ -110,4 +110,32 @@
 3. Developer hiện thực `V7` + `V8` cùng package `com.anhduongbuilding.erp.workforce` / `.accounting`; ưu tiên cost ingestion idempotent và POC cost-to-cost.
 4. Tester xây golden dataset 12 kỳ-dự án (gồm 1 dự án lỗ dự kiến, 1 dự án survey) đối chiếu Excel do Kế toán trưởng ký.
 
+---
+
+## Session: 2026-10-21 (TASK-032 — Kiểm tra Sẵn sàng BA / Sprint Intake Gate)
+
+### Summary
+- **Deliverable**: `docs/reports/TASK-032-BA-READINESS-REPORT.md` — kiểm kê 11 spec, ma trận 11 cổng chất lượng, gap register, Definition of Ready và blueprint `SPEC-12` Claims/EOT/VO.
+- **DDL thực thi thật** (đóng gap của TASK-025): DB tạm `adb_ba_readiness_t032` trên PostgreSQL **17.11** @ `192.168.1.50`, baseline `V1..V5` → SPEC-10 → SPEC-11. Kết quả **PASS**: 89 bảng lũy kế, **56 bảng mới**, **164 FK**, **306 CHECK**; DB tạm đã drop, không chạm `adb_erp`.
+- **DEF-032-01 (blocker) đã sửa**: seed `workforce_mgmt.allowance_types` dùng `FIXED_PER_NIGHT_SHIFT` trong khi CHECK chỉ cho `PER_NIGHT_SHIFT` → V7 sẽ fail ngay khi migrate. Đã đổi sang `PER_NIGHT_SHIFT`, chạy lại toàn bộ DDL sạch (bản hiện tại: 990 dòng SPEC-10 + 969 dòng SPEC-11).
+- **Phát hiện đồng thời**: frontend đã lên **12 module / 24 DTO** (`f4d8992`), có `FidicClaimsVOModule.tsx` và `WorkforceWIPModule.tsx`, nhưng `claimsApi`/`workforceWipApi` trả **mock hard-code**; backend vẫn dừng ở V5, thiếu package `qaqc`, `hse`, `workforce`, `accounting`, `claims`.
+
+### Verification
+- 4 spec mới (08–11): **77 User Stories / 85 AC / 97 bảng / 152 endpoint**; cả 4 đạt chuẩn template mới.
+- 7 spec legacy (01–07): 0 User Story, 0 AC, 0 JSON schema, 0 error code registry → **FAIL** chuẩn mới (nợ kỹ thuật).
+- SPEC-08/09: 41 bảng (theo TASK-022) + SPEC-10/11: 56 bảng = **97 bảng**, khớp tài liệu.
+- Không sửa migration V1–V5; chỉ sửa 1 dòng SPEC-10 và thêm báo cáo.
+
+### Decisions Recommended (chờ Lead)
+- [ ] **Ratify M12 as-built = FIDIC Claims/EOT/VO**; chuyển EDMS → M13, Executive BI → M14 (UI/SPEC-11/SESSION đang dùng cách này; roadmap cũ ghi M12=BI).
+- [ ] Duyệt 18 open questions của SPEC-10/11 theo default đã đề xuất.
+- [ ] Chốt FIDIC **Silver Book 2017** (UI ghi) hay **Yellow Book 2017** trước khi duyệt SPEC-12.
+
+### Next Recommended Actions
+1. Lead chốt TASK-033 (module matrix + scope M12) — đây là gate cứng trước khi BA viết SPEC-12.
+2. BA nhận TASK-034: soạn `SPEC-12-FIDIC-CLAIMS-EOT-VO.md` theo blueprint Phụ lục A, giữ DTO contract `FidicClaim`/`VariationOrder`.
+3. Developer ưu tiên `V6` + 6 endpoint read QAQC/HSE; sau đó `V7`, `V8`, `V9` (claims).
+4. DevOps bổ sung CI `flyway migrate` trên DB ephemeral để bắt lỗi kiểu DEF-032-01.
+
+
 
