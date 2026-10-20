@@ -200,7 +200,7 @@ f4d8992 2026-10-21 00:29  feat(ui-ux): Complete enterprise redesign ... 12-modul
 
 | ID | Severity | Phát hiện | Tác động | Owner | Hành động đề xuất |
 |---|---|---|---|---|---|
-| **GAP-032-01** | **Critical** | 3 cách đánh số module xung đột: (a) `ENTERPRISE_ARCHITECTURE_ROADMAP` M10=WIP, M11=EDMS, M12=BI; (b) `MASTER_ROADMAP` M08=Workforce, M09=WIP, M10=VO, M11=QAQC+HSE, M12=BI; (c) thực tế đang chạy: M10=Workforce, M11=WIP, M12=Claims/EOT/VO (UI `Sidebar.tsx`, SPEC-11 §11.1, SESSION) | Không xác định được "Module 12" là gì; Developer/Tester có thể build sai phân hệ; báo cáo cho BGĐ sai số hiệu | **Lead** | Ban hành `DECISIONS.md`: **ratify cách đánh số as-built (c)**; chuyển EDMS & BI thành M13/M14; ghi rõ roadmap cũ đã bị thay thế |
+| **GAP-032-01** | **Critical** | 3 cách đánh số module xung đột: (a) `ENTERPRISE_ARCHITECTURE_ROADMAP` M10=WIP, M11=EDMS, M12=BI; (b) `MASTER_ROADMAP` M08=Workforce, M09=WIP, M10=VO, M11=QAQC+HSE, M12=BI; (c) thực tế đang chạy: M10=Workforce, M11=WIP, M12=Claims/EOT/VO (`FidicClaimsVOModule.tsx` ghi "Module 12", SPEC-11 §11.1, SESSION) | Không xác định được "Module 12" là gì; Developer/Tester có thể build sai phân hệ; báo cáo cho BGĐ sai số hiệu | **Lead** | Ban hành `DECISIONS.md`: **ratify cách đánh số as-built (c)**; chuyển EDMS & BI thành M13/M14; ghi rõ roadmap cũ đã bị thay thế |
 | **GAP-032-02** | High | Chưa có `SPEC-12`; UI đã có màn hình Claims/VO nhưng chỉ là mock | Sprint mới không có đầu việc BA rõ ràng; backend không thể thay mock | Lead + BA | Chốt scope theo §5; BA soạn spec trong 3–4 ngày |
 | **GAP-032-03** | High | 7 spec legacy (01–07) không có User Story, AC, JSON schema, error code, NFR; SPEC-04/05 thậm chí không có DDL | Không audit được; Tester không có oracle; dev mới không thể onboard | BA | Chuyển thành "spec-as-built" v2 theo template, ưu tiên 03/04/05 (dòng tiền) |
 | **GAP-032-04** | High | 18 open questions chưa trả lời (SPEC-10: 7; SPEC-11: 11) | Developer phải tự chọn default cho lương/POC — rủi ro tài chính | Lead + HR/CFO | Phê duyệt bảng default hiện có; mọi thay đổi sau đó phải qua change control |
@@ -248,7 +248,7 @@ f4d8992 2026-10-21 00:29  feat(ui-ux): Complete enterprise redesign ... 12-modul
 | B. Executive BI | Dashboard CPI/SPI, risk radar, weather | Phù hợp roadmap cũ M12; giá trị trình diễn cao | Chỉ đọc dữ liệu; phụ thuộc V7/V8 và Claims → làm trước sẽ rỗng | Chuyển M14 |
 | C. EDMS & RFI | Bản vẽ, revision, RFI, MAS, as-built | Hoàn thiện chuỗi hồ sơ; QA/QC đang cần | Không chặn dòng tiền | Chuyển M13 |
 
-**Khuyến nghị:** giữ nguyên số hiệu **M12 = Claims/EOT/VO** như UI và SPEC-11 đang dùng; đặt file `SPEC-12-FIDIC-CLAIMS-EOT-VO.md`. Cập nhật roadmap: M13 = EDMS & RFI, M14 = Executive BI. Việc đổi số ngược lại sẽ phải sửa Sidebar, SPEC-11, SESSION và gây nhầm lẫn cho Tester — chi phí cao hơn nhiều so với việc cập nhật roadmap.
+**Khuyến nghị:** giữ nguyên số hiệu **M12 = Claims/EOT/VO** như UI và SPEC-11 đang dùng; đặt file `SPEC-12-FIDIC-CLAIMS-EOT-VO.md`. Cập nhật roadmap: M13 = EDMS & RFI, M14 = Executive BI. Việc đổi số ngược lại sẽ phải sửa module badge, SPEC-11, SESSION và gây nhầm lẫn cho Tester — chi phí cao hơn nhiều so với việc cập nhật roadmap.
 
 ### 5.2 Đề xuất task breakdown (Lead xác nhận ID)
 
