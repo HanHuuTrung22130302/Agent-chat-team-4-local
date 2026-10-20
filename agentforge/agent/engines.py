@@ -85,7 +85,8 @@ class OpenCodeEngine:
             result = subprocess.run(
                 [self.cmd, "run", "-m", target_model, prompt],
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=300,
                 shell=IS_WINDOWS
             )
@@ -103,7 +104,8 @@ class OpenCodeEngine:
                     fallback_result = subprocess.run(
                         [self.cmd, "run", "-m", self.fallback_model, prompt],
                         capture_output=True,
-                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         timeout=300,
                         shell=IS_WINDOWS
                     )
@@ -148,7 +150,8 @@ class AntigravityEngine:
             result = subprocess.run(
                 [self.cmd, "-p", prompt, "--model", target_model, "--dangerously-skip-permissions"],
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=300,
                 shell=IS_WINDOWS
             )
@@ -168,7 +171,8 @@ class AntigravityEngine:
                     fallback_result = subprocess.run(
                         [self.cmd, "-p", prompt, "--model", fb, "--dangerously-skip-permissions"],
                         capture_output=True,
-                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         timeout=300,
                         shell=IS_WINDOWS
                     )
