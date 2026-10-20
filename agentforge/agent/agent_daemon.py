@@ -11,7 +11,21 @@ import socket
 import asyncio
 import logging
 import argparse
-import websockets
+
+# Auto-check and install dependencies on first run
+try:
+    import websockets
+except ImportError:
+    import subprocess
+    print("[AgentForge] Dependency 'websockets' not found. Installing automatically via pip...")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "websockets"])
+        import websockets
+        print("[AgentForge] Successfully installed 'websockets'.")
+    except Exception as e:
+        print(f"[AgentForge Error] Failed to auto-install 'websockets': {e}")
+        sys.exit(1)
+
 from engines import get_engine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")

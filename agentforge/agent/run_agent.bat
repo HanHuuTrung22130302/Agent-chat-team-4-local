@@ -7,6 +7,20 @@ echo        AgentForge - Multi-Agent Distributed Worker Node
 echo ==========================================================
 echo.
 
+:: Auto-check and install Python dependencies on first run
+python -c "import websockets" 2>nul
+if errorlevel 1 (
+    echo [AgentForge] First time run detected: Installing required libraries...
+    python -m pip install websockets
+    if errorlevel 1 (
+        echo [ERROR] Failed to install dependencies. Make sure Python is installed and on PATH.
+        pause
+        exit /b 1
+    )
+    echo [AgentForge] Dependencies installed successfully!
+    echo.
+)
+
 if not "%1"=="" (
     set ROLE=%1
     set ENGINE=%2
