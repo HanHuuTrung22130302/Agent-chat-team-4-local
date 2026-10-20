@@ -9,18 +9,23 @@ const wsUrl = `ws://${host}/ws/ui`;
 const MODEL_PRESETS = {
   opencode: [
     { value: "opencode/deepseek-v4.1-flash-free", label: "DeepSeek v4.1 Flash (FREE - Recommended)", free: true },
-    { value: "opencode/mimo-v2.6-flash-free", label: "Mimo v2.6 Flash (FREE)", free: true },
-    { value: "opencode/nemotron-3.5-lightning-free", label: "Nemotron 3.5 Lightning (FREE)", free: true },
-    { value: "opencode/glm-5.3-flash-free", label: "GLM 5.3 Flash (FREE)", free: true },
-    { value: "opencode/minimax-m3.1-flash-free", label: "MiniMax m3.1 Flash (FREE)", free: true },
-    { value: "opencode/deepseek-v4-pro", label: "DeepSeek v4 Pro", free: false },
-    { value: "opencode/claude-opus-4-6", label: "Claude Opus 4.6", free: false },
+    { value: "opencode/beam-free", label: "Beam Free (FREE)", free: true },
+    { value: "opencode/mimo-v2.6-flash-free", label: "MiMo-V2.6-Flash Free (FREE)", free: true },
+    { value: "opencode/glm-5.3-flash-free", label: "GLM-5.3-Flash Free (FREE)", free: true },
+    { value: "opencode/longcat-2.5-preview-free", label: "LongCat 2.5 Preview Free (FREE)", free: true },
+    { value: "opencode/nemotron-3.5-lightning-free", label: "Nemotron 3.5 Lightning Free (FREE)", free: true },
+    { value: "opencode/nemotron-3-ultra-free", label: "Nemotron 3 Ultra Free (FREE)", free: true },
+    { value: "opencode/nemotron-3.5-super-vl-free", label: "Nemotron 3.5 Super VL Free (FREE)", free: true },
+    { value: "opencode/minimax-m3.1-flash-free", label: "MiniMax m3.1 Flash Free (FREE)", free: true },
+    { value: "opencode/deepseek-v4-pro", label: "DeepSeek v4 Pro (PRO)", free: false },
+    { value: "opencode/deepseek-v4-flash", label: "DeepSeek v4 Flash", free: false },
+    { value: "opencode/claude-opus-4-6", label: "Claude Opus 4.6 (PRO)", free: false },
     { value: "custom", label: "Custom Model Identifier...", free: false }
   ],
   antigravity: [
-    { value: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash High (FREE Tier)", free: true },
+    { value: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash High (Default/Free Tier)", free: true },
+    { value: "claude-opus-4-6-thinking", label: "Claude Opus 4.6 Thinking (Pro Jio)", free: false },
     { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (Thinking)", free: false },
-    { value: "claude-opus-4-6-thinking", label: "Claude Opus 4.6 (Thinking)", free: false },
     { value: "gemini-4-argon", label: "Gemini 4 Argon (Pro Tier)", free: false },
     { value: "gpt-oss-120b-medium", label: "GPT-OSS 120B (Medium)", free: true },
     { value: "custom", label: "Custom Model Identifier...", free: false }

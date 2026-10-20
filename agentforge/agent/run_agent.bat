@@ -6,11 +6,19 @@ echo ==========================================================
 echo        AgentForge - Multi-Agent Distributed Worker Node
 echo ==========================================================
 echo.
+
+if not "%1"=="" (
+    set ROLE=%1
+    set ENGINE=%2
+    set MODEL=%3
+    goto START
+)
+
 echo Select the role for this computer:
-echo [1] Lead / Architect     (OpenCode / Claude Opus / Free)
-echo [2] BA / Spec Writer      (Antigravity Pro / Gemini Pro)
-echo [3] Developer             (OpenCode / DeepSeek v4.1 Free)
-echo [4] Tester / QA           (OpenCode / Mimo Free / Pytest)
+echo [1] Lead / Architect     (PC-3: OpenCode - DeepSeek v4 Pro / Free)
+echo [2] BA / Spec Writer     (PC-4: Antigravity Pro Jio - Gemini 3.8 Flash / Claude Opus)
+echo [3] Developer            (PC-1: OpenCode - DeepSeek v4.1 Flash Free)
+echo [4] Tester / QA          (PC-2: OpenCode - Beam Free / MiMo Free)
 echo.
 
 set /p choice="Enter choice [1-4] (Default 3): "
@@ -26,16 +34,24 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="4" (
     set ROLE=tester
     set ENGINE=opencode
-    set MODEL=opencode/mimo-v2.6-flash-free
+    set MODEL=opencode/beam-free
 ) else (
     set ROLE=developer
     set ENGINE=opencode
     set MODEL=opencode/deepseek-v4.1-flash-free
 )
 
+:START
 echo.
-echo Starting AgentForge Daemon as [%ROLE%] using [%ENGINE%] (%MODEL%)...
-echo Hub Server: ws://192.168.1.50:8000/ws
+echo ==========================================================
+echo Role       : [%ROLE%]
+echo Tool / IDE : [%ENGINE%]
+echo AI Model   : [%MODEL%]
+echo Hub Server : ws://192.168.1.50:8000/ws
+echo ==========================================================
+echo.
+echo Connecting to AgentForge Hub...
+echo (Keep this window open while the agent is participating)
 echo.
 
 python agent_daemon.py --role %ROLE% --engine %ENGINE% --model %MODEL% --hub ws://192.168.1.50:8000/ws
