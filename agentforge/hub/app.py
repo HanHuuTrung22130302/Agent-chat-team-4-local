@@ -175,8 +175,8 @@ class CreateTaskRequest(BaseModel):
     description: str = ""
     assigned_role: str = "lead"
     priority: str = "medium"
-    engine: Optional[str] = "opencode"   # opencode | antigravity
-    model: Optional[str] = None          # model override
+    engine: Optional[str] = None         # opencode | antigravity (defaults to agent's registered engine)
+    model: Optional[str] = None          # model override (defaults to agent's registered model)
 
 @app.post("/api/tasks")
 async def create_task(req: CreateTaskRequest):
@@ -201,13 +201,20 @@ async def create_task(req: CreateTaskRequest):
     # Find matching agent for role
     target_ws = None
     target_agent_id = None
+    target_agent = None
     for a_id, agent in storage.agents.items():
         if agent.role == req.assigned_role and agent.status == "idle" and a_id in active_connections:
             target_ws = active_connections[a_id]
             target_agent_id = a_id
+            target_agent = agent
             break
 
     if target_ws and target_agent_id:
+        # Auto-match to agent's registered engine & model if not explicitly specified
+        effective_engine = task.engine or (target_agent.engine if target_agent else "opencode")
+        effective_model = task.model or (target_agent.model if target_agent else None)
+        task.engine = effective_engine
+        task.model = effective_model
         task.assigned_agent_id = target_agent_id
         task.status = "in_progress"
         await storage.update_agent_status(target_agent_id, "busy", current_task_id=task_id)
@@ -220,13 +227,13 @@ async def create_task(req: CreateTaskRequest):
                 "title": task.title,
                 "description": task.description,
                 "priority": task.priority,
-                "engine": task.engine,
-                "model": task.model
+                "engine": effective_engine,
+                "model": effective_model
             },
             "id": 1
         }
         await target_ws.send_text(json.dumps(payload))
-        engine_label = f"{task.engine or 'default'} ({task.model or 'default'})"
+        engine_label = f"{effective_engine} ({effective_model or 'default'})"
         await storage.add_message("Hub", f"Assigned {task_id} to {target_agent_id} [{engine_label}]")
 
     await storage.save_task(task)
