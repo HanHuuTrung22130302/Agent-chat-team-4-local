@@ -235,6 +235,22 @@ async def get_task_detail(task_id: str):
     task_data["related_messages"] = related
     return task_data
 
+@app.post("/api/tasks/{task_id}/reset")
+async def reset_task(task_id: str):
+    if task_id not in storage.tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task = storage.tasks[task_id]
+    task.status = "done"
+    task.completed_at = datetime.now().isoformat()
+    timestamp_str = datetime.now().strftime("%H:%M:%S")
+    task.logs.append(f"[{timestamp_str}] [RESET] Task unblocked and marked done by Lead.")
+    await storage.save_task(task)
+    if task.assigned_agent_id and task.assigned_agent_id in storage.agents:
+        await storage.update_agent_status(task.assigned_agent_id, "idle", current_task_id=None)
+    await broadcast_ui("task_complete", {"task_id": task_id, "status": "done"})
+    await check_and_assign_pending_tasks()
+    return {"status": "ok", "message": f"Task {task_id} unblocked and reset to done."}
+
 class CreateTaskRequest(BaseModel):
     title: str
     description: str = ""

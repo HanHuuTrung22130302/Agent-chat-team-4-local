@@ -96,10 +96,11 @@ class OpenCodeEngine:
         try:
             result = subprocess.run(
                 [self.cmd, "run", "-m", target_model, clean_prompt],
+                stdin=subprocess.DEVNULL,
                 capture_output=True,
                 encoding="utf-8",
                 errors="replace",
-                timeout=300,
+                timeout=180,
                 shell=use_shell
             )
             output = (result.stdout or "").strip()
@@ -115,10 +116,11 @@ class OpenCodeEngine:
                     logger.info(f"==> Auto-fallback to FREE model [{self.fallback_model}] to keep workflow running...")
                     fallback_result = subprocess.run(
                         [self.cmd, "run", "-m", self.fallback_model, clean_prompt],
+                        stdin=subprocess.DEVNULL,
                         capture_output=True,
                         encoding="utf-8",
                         errors="replace",
-                        timeout=300,
+                        timeout=180,
                         shell=use_shell
                     )
                     fb_out = (fallback_result.stdout or "").strip()
@@ -128,6 +130,9 @@ class OpenCodeEngine:
                 return f"[QUOTA_EXHAUSTED]: {err_msg}"
 
             logger.error(f"OpenCode error: {err_msg}")
+        except subprocess.TimeoutExpired:
+            logger.warning(f"[TIMEOUT ALERT] Model [{target_model}] timed out after 180s. Attempting fallback...")
+            err_msg = "Execution timed out after 180s"
             
             # Smart Engine Fallback: If OpenCode fails (e.g. expired key or missing), auto-try Antigravity if available
             agy_bin = find_agy_executable()
