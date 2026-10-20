@@ -89,8 +89,8 @@ class OpenCodeEngine:
                 timeout=300,
                 shell=IS_WINDOWS
             )
-            output = result.stdout.strip()
-            err_msg = result.stderr.strip() or output
+            output = (result.stdout or "").strip()
+            err_msg = (result.stderr or "").strip() or output
 
             if result.returncode == 0 and not is_quota_error(output):
                 return output or "Task completed (empty output)."
@@ -107,8 +107,9 @@ class OpenCodeEngine:
                         timeout=300,
                         shell=IS_WINDOWS
                     )
+                    fb_out = (fallback_result.stdout or "").strip()
                     if fallback_result.returncode == 0:
-                        return f"[Notice: Auto-switched to {self.fallback_model} due to quota limit on {target_model}]\n\n" + fallback_result.stdout.strip()
+                        return f"[Notice: Auto-switched to {self.fallback_model} due to quota limit on {target_model}]\n\n" + fb_out
 
                 return f"[QUOTA_EXHAUSTED]: {err_msg}"
 
@@ -151,8 +152,8 @@ class AntigravityEngine:
                 timeout=300,
                 shell=IS_WINDOWS
             )
-            output = result.stdout.strip()
-            err_msg = result.stderr.strip() or output
+            output = (result.stdout or "").strip()
+            err_msg = (result.stderr or "").strip() or output
 
             if result.returncode == 0 and not is_quota_error(output):
                 return output or "Task completed (empty output)."
@@ -171,8 +172,9 @@ class AntigravityEngine:
                         timeout=300,
                         shell=IS_WINDOWS
                     )
-                    if fallback_result.returncode == 0 and not is_quota_error(fallback_result.stdout):
-                        return f"[Notice: Auto-switched to {fb} due to quota limit on {target_model}]\n\n" + fallback_result.stdout.strip()
+                    fb_out = (fallback_result.stdout or "").strip()
+                    if fallback_result.returncode == 0 and not is_quota_error(fb_out):
+                        return f"[Notice: Auto-switched to {fb} due to quota limit on {target_model}]\n\n" + fb_out
 
                 return f"[QUOTA_EXHAUSTED]: {err_msg}"
 

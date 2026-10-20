@@ -8,11 +8,12 @@ echo ==========================================================
 echo.
 
 :: Auto-sync latest code and tools from repository
-git pull origin main 2>nul
+echo [AgentForge] Checking for updates from repository...
+git pull origin main
 if errorlevel 1 (
-    echo [AgentForge] Note: Git pull skipped (working offline or detached).
+    echo [AgentForge] Warning: Git pull encountered an issue. Continuing with local files...
 ) else (
-    echo [AgentForge] Synced latest tools and agent engines from repository.
+    echo [AgentForge] Successfully synced latest tools and agent engines!
 )
 echo.
 
