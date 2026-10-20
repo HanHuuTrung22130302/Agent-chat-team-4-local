@@ -3,6 +3,8 @@
 let ws = null;
 let currentAgentsList = [];
 let targetConfigAgentId = null;
+let cachedTasks = {};
+let activeDetailTaskId = null;
 const host = window.location.host;
 const wsUrl = `ws://${host}/ws/ui`;
 
@@ -139,26 +141,43 @@ function renderTasks(tasks) {
   Object.values(cols).forEach(c => { if(c) c.innerHTML = ""; });
 
   tasks.forEach(t => {
+    cachedTasks[t.task_id] = t;
     const colKey = cols[t.status] ? t.status : "pending";
     counts[colKey]++;
 
     const card = document.createElement("div");
-    card.className = "p-3 rounded-lg border border-slate-800 bg-slate-900/60 text-xs space-y-1.5 shadow-sm hover:border-slate-700 transition";
+    card.className = "group p-3 rounded-lg border border-slate-800/90 bg-slate-900/60 hover:bg-slate-900 hover:border-indigo-500/80 transition-all duration-150 cursor-pointer shadow-sm hover:shadow-md hover:shadow-indigo-500/10 space-y-2";
+    card.onclick = () => openTaskDetailModal(t.task_id);
     
     const engineBadge = t.engine ? `<span class="text-[9px] uppercase px-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${t.engine}</span>` : '';
     
+    let statusDot = 'bg-slate-500';
+    if (t.status === 'in_progress') statusDot = 'bg-amber-400 animate-pulse';
+    else if (t.status === 'done') statusDot = 'bg-emerald-400';
+    else if (t.status === 'review') statusDot = 'bg-purple-400';
+    else if (t.status === 'failed') statusDot = 'bg-rose-400';
+
     card.innerHTML = `
       <div class="flex items-center justify-between">
-        <span class="mono font-semibold text-slate-300">${t.task_id}</span>
+        <div class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span>
+          <span class="mono font-semibold text-slate-200 group-hover:text-indigo-300 transition">${t.task_id}</span>
+        </div>
         <div class="flex items-center gap-1">
           ${engineBadge}
           <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${t.assigned_role}</span>
         </div>
       </div>
-      <p class="font-medium text-slate-200 line-clamp-2">${t.title}</p>
-      <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-        <span class="mono text-[10px] text-slate-400 truncate max-w-[140px]">${t.model || 'default'}</span>
-        <span class="text-indigo-400 font-mono">${t.assigned_agent_id ? t.assigned_agent_id : 'unassigned'}</span>
+      <p class="font-medium text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition">${t.title}</p>
+      <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+        <span class="mono text-[10px] text-slate-400 truncate max-w-[130px]">${t.model || 'default'}</span>
+        <span class="text-indigo-400 font-mono text-[10px]">${t.assigned_agent_id ? t.assigned_agent_id : 'unassigned'}</span>
+      </div>
+      <div class="flex items-center justify-between pt-1.5 border-t border-slate-800/60 text-[10px] text-slate-500 group-hover:text-indigo-400 transition">
+        <span class="flex items-center gap-1">
+          <i class="fa-solid fa-terminal text-[9px] opacity-70"></i> Xem Logs & Chi tiết
+        </span>
+        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-60 group-hover:opacity-100 transition"></i>
       </div>
     `;
     if (cols[colKey]) cols[colKey].appendChild(card);
@@ -337,5 +356,162 @@ async function saveAgentConfig(e) {
     alert("Failed to update config: " + err);
   }
 }
+
+// --- Task Detail & Log Modal Logic ---
+
+async function openTaskDetailModal(taskId) {
+  activeDetailTaskId = taskId;
+  let task = cachedTasks[taskId] || { task_id: taskId, title: "Loading...", description: "", status: "pending" };
+
+  // Set basic cached values first for immediate feedback
+  populateModalData(task);
+
+  const modal = document.getElementById("task-detail-modal");
+  modal.classList.remove("hidden");
+
+  // Fetch full details & latest logs from backend API
+  try {
+    const res = await fetch(`/api/tasks/${taskId}`);
+    if (res.ok) {
+      const fullTask = await res.json();
+      cachedTasks[taskId] = fullTask;
+      populateModalData(fullTask);
+    }
+  } catch (err) {
+    console.warn("Could not fetch extended task logs:", err);
+  }
+}
+
+function populateModalData(task) {
+  document.getElementById("modal-detail-id").textContent = task.task_id;
+  document.getElementById("modal-detail-title").textContent = task.title || "Untitled Task";
+  
+  // Status badge styling
+  const statusEl = document.getElementById("modal-detail-status");
+  const s = (task.status || "pending").toLowerCase();
+  statusEl.textContent = s.toUpperCase();
+  if (s === "done") {
+    statusEl.className = "text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+  } else if (s === "in_progress") {
+    statusEl.className = "text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse";
+  } else if (s === "failed") {
+    statusEl.className = "text-xs px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+  } else if (s === "review") {
+    statusEl.className = "text-xs px-2.5 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20";
+  } else {
+    statusEl.className = "text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-800 text-slate-400 border border-slate-700";
+  }
+
+  // Priority badge styling
+  const prioEl = document.getElementById("modal-detail-priority");
+  prioEl.textContent = (task.priority || "medium").toUpperCase();
+
+  // Meta fields
+  document.getElementById("modal-detail-role").textContent = task.assigned_role || "lead";
+  document.getElementById("modal-detail-agent").textContent = task.assigned_agent_id || "Unassigned";
+  document.getElementById("modal-detail-engine").textContent = task.engine === "antigravity" ? "Antigravity Pro (agy)" : "OpenCode CLI";
+  document.getElementById("modal-detail-model").textContent = task.model || "Default Model";
+  document.getElementById("modal-detail-created").textContent = task.created_at ? formatTime(task.created_at) : "N/A";
+  document.getElementById("modal-detail-completed").textContent = task.completed_at ? formatTime(task.completed_at) : (s === "done" ? "Completed" : "In Progress");
+
+  // Description / Prompt context
+  const descEl = document.getElementById("modal-detail-desc");
+  descEl.textContent = task.description || "(No description or prompt requirements recorded)";
+
+  // Logs rendering
+  const logsEl = document.getElementById("modal-detail-logs");
+  logsEl.innerHTML = "";
+
+  const logLines = [];
+  if (Array.isArray(task.logs) && task.logs.length > 0) {
+    task.logs.forEach(l => logLines.push({ text: l, type: "log" }));
+  }
+
+  if (Array.isArray(task.related_messages) && task.related_messages.length > 0) {
+    task.related_messages.forEach(m => {
+      const line = `[${m.timestamp || ''}] [${m.sender}] ${m.content}`;
+      if (!logLines.some(existing => existing.text.includes(m.content))) {
+        logLines.push({ text: line, type: "chat" });
+      }
+    });
+  }
+
+  if (logLines.length === 0) {
+    logsEl.innerHTML = `<div class="text-slate-500 italic py-2">No execution logs or progress updates recorded yet.</div>`;
+  } else {
+    logLines.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "leading-relaxed break-words py-0.5 border-b border-slate-900/60";
+      
+      const txt = item.text;
+      if (txt.includes("[FAILED]") || txt.includes("❌") || txt.includes("Error") || txt.includes("Exception")) {
+        div.className += " text-rose-400 font-semibold";
+      } else if (txt.includes("[SUCCESS]") || txt.includes("✅") || txt.includes("completed")) {
+        div.className += " text-emerald-400 font-semibold";
+      } else if (txt.includes("Executing") || txt.includes("Accepted task")) {
+        div.className += " text-sky-300";
+      } else {
+        div.className += " text-slate-300";
+      }
+      div.textContent = txt;
+      logsEl.appendChild(div);
+    });
+    logsEl.scrollTop = logsEl.scrollHeight;
+  }
+}
+
+function formatTime(isoStr) {
+  if (!isoStr) return "";
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", day: "2-digit", month: "2-digit" });
+  } catch {
+    return isoStr;
+  }
+}
+
+function closeTaskDetailModal() {
+  document.getElementById("task-detail-modal").classList.add("hidden");
+  activeDetailTaskId = null;
+}
+
+function copyTaskDescription() {
+  const text = document.getElementById("modal-detail-desc").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Context / Prompt copied to clipboard!");
+  });
+}
+
+function copyTaskLogs() {
+  const text = document.getElementById("modal-detail-logs").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Execution logs copied to clipboard!");
+  });
+}
+
+// Global modal listeners (Esc key & Click outside)
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeTaskDetailModal();
+    closeNewTaskModal();
+    closeAgentConfigModal();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const taskModal = document.getElementById("task-detail-modal");
+  if (e.target === taskModal) {
+    closeTaskDetailModal();
+  }
+  const configModal = document.getElementById("config-modal");
+  if (e.target === configModal) {
+    closeAgentConfigModal();
+  }
+  const newTaskModal = document.getElementById("new-task-modal");
+  if (e.target === newTaskModal) {
+    closeNewTaskModal();
+  }
+});
 
 window.addEventListener("DOMContentLoaded", initWebSocket);

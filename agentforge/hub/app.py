@@ -6,6 +6,7 @@ import os
 import json
 import logging
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -103,31 +104,43 @@ async def websocket_endpoint(websocket: WebSocket):
             elif method == "task.progress":
                 task_id = params.get("task_id")
                 msg = params.get("message", "")
+                if task_id in storage.tasks:
+                    timestamp_str = datetime.now().strftime("%H:%M:%S")
+                    storage.tasks[task_id].logs.append(f"[{timestamp_str}] {msg}")
                 await storage.add_message(current_agent_id or "Agent", f"[{task_id}] {msg}")
                 await broadcast_ui("task_progress", params)
 
             # 4. Task Completion
             elif method == "task.complete":
                 task_id = params.get("task_id")
+                summary = params.get("summary", "Task completed")
                 if task_id in storage.tasks:
                     task = storage.tasks[task_id]
                     task.status = "done"
                     task.branch = params.get("branch", task.branch)
                     task.commit_sha = params.get("commit_sha")
+                    task.completed_at = datetime.now().isoformat()
+                    timestamp_str = datetime.now().strftime("%H:%M:%S")
+                    task.logs.append(f"[{timestamp_str}] [SUCCESS] {summary}")
                     await storage.save_task(task)
                 if current_agent_id:
                     await storage.update_agent_status(current_agent_id, "idle", current_task_id=None)
-                summary = params.get("summary", "Task completed")
                 await storage.add_message(current_agent_id or "Agent", f"✅ Task {task_id} completed: {summary}")
                 await broadcast_ui("task_complete", params)
 
             # 5. Task Failure / Defect Report
             elif method == "task.failed":
                 task_id = params.get("task_id")
-                if task_id in storage.tasks:
-                    storage.tasks[task_id].status = "failed"
-                    await storage.save_task(storage.tasks[task_id])
                 details = params.get("details", "Task failed")
+                if task_id in storage.tasks:
+                    task = storage.tasks[task_id]
+                    task.status = "failed"
+                    task.completed_at = datetime.now().isoformat()
+                    timestamp_str = datetime.now().strftime("%H:%M:%S")
+                    task.logs.append(f"[{timestamp_str}] [FAILED] {details}")
+                    await storage.save_task(task)
+                if current_agent_id:
+                    await storage.update_agent_status(current_agent_id, "idle", current_task_id=None)
                 await storage.add_message(current_agent_id or "Agent", f"❌ Task {task_id} FAILED: {details}")
                 await broadcast_ui("task_failed", params)
 
@@ -169,6 +182,19 @@ async def get_agents():
 @app.get("/api/tasks")
 async def get_tasks():
     return list(storage.tasks.values())
+
+@app.get("/api/tasks/{task_id}")
+async def get_task_detail(task_id: str):
+    if task_id not in storage.tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task_data = storage.tasks[task_id].dict()
+    # Find all related broadcast messages in activity log that match this task_id
+    related = [
+        m for m in storage.messages
+        if task_id.lower() in m.get("content", "").lower()
+    ]
+    task_data["related_messages"] = related
+    return task_data
 
 class CreateTaskRequest(BaseModel):
     title: str

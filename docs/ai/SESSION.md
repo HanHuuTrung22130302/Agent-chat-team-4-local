@@ -23,7 +23,11 @@
   6. Nâng cấp Frontend React 18:
      - Thêm phân hệ Quản lý Thầu phụ & FIDIC PPC trên giao diện.
      - Bảng tra cứu chứng chỉ PPC với các khoản khấu trừ trực quan.
-  7. Đồng bộ hóa toàn diện mã nguồn, công cụ và tài liệu lên cả hai kho lưu trữ:
+  7. Nâng cấp Giao diện Web Dashboard (`http://192.168.1.50:8000`):
+     - Thêm scroll view độc lập (`h-[560px]`, `overflow-y-auto`, `custom-scrollbar`) cho từng cột Kanban (Backlog, In Progress, Review, Completed), chấm dứt hiện tượng kéo dài toàn màn hình.
+     - Xây dựng pop-up modal Task Detail & Logs: Cho phép click vào bất kỳ thẻ task nào trên Task Board để xem toàn bộ thông tin chi tiết, prompt yêu cầu, và toàn bộ log thực thi / output của AI engine.
+     - Bổ sung nút Copy Context và Copy Full Log nhanh chóng.
+  8. Đồng bộ hóa toàn diện mã nguồn, công cụ và tài liệu lên cả hai kho lưu trữ:
      - `Erp-ADB-Building.git`
      - `Agent-chat-team-4-local.git`
 
