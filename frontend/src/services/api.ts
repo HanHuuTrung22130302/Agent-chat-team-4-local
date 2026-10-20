@@ -10,7 +10,14 @@ import {
   Material,
   StockBalance,
   Equipment,
-  SteelComponent
+  SteelComponent,
+  QAQCInspection,
+  ConcreteTestSample,
+  WeldNDTReport,
+  NCRReport,
+  PermitToWork,
+  SafetyIncident,
+  ToolboxMeeting
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
@@ -250,3 +257,257 @@ export const winsteelApi = {
     }
   }
 };
+
+export const qaqcApi = {
+  getInspections: async (projectId: number): Promise<QAQCInspection[]> => {
+    try {
+      const response = await apiClient.get<QAQCInspection[]>(`/qaqc/inspections?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          projectId,
+          inspectionCode: 'NT-ADB-2026-042',
+          wbsCode: 'WBS-2.0',
+          workCategory: 'Bê tông cốt thép móng',
+          inspectionType: 'CONCEALED_WORK',
+          standardReference: 'TCVN 4453:1995 & NĐ 06/2021/NĐ-CP',
+          inspectionDate: '2026-10-18',
+          inspectorADB: 'Kỹ sư Vũ Minh Trí (ADB QA/QC)',
+          supervisionConsultant: 'TVGS Trưởng Trần Đình Trọng',
+          result: 'PASSED',
+          notes: 'Cốt thép đúng bản vẽ shop drawing số SD-ADB-FO-05, chiều dày lớp bê tông bảo vệ cọc 70mm đạt chuẩn.',
+          attachedPhotosCount: 6
+        },
+        {
+          id: 2,
+          projectId,
+          inspectionCode: 'NT-ADB-2026-043',
+          wbsCode: 'WBS-3.0',
+          workCategory: 'Bu lông neo móng chân cột thép',
+          inspectionType: 'STAGE',
+          standardReference: 'TCVN 5575:2012 & AWS D1.1',
+          inspectionDate: '2026-10-19',
+          inspectorADB: 'Kỹ sư Hoàng Hải Đăng (ADB Steel QC)',
+          supervisionConsultant: 'Kỹ sư Phan Bá Đạt (TVGS)',
+          result: 'PASSED',
+          notes: 'Định vị tim trục bu lông neo Gr.8.8 M30 sai số trong phạm vi ±2mm (cho phép ±3mm).',
+          attachedPhotosCount: 4
+        },
+        {
+          id: 3,
+          projectId,
+          inspectionCode: 'NT-ADB-2026-044',
+          wbsCode: 'WBS-3.0',
+          workCategory: 'Khung thép tiền chế WinSteel đợt 1',
+          inspectionType: 'MATERIAL_INCOMING',
+          standardReference: 'TCVN 6735:2000 (Siêu âm mối hàn UT)',
+          inspectionDate: '2026-10-20',
+          inspectorADB: 'Kỹ sư Vũ Minh Trí',
+          supervisionConsultant: 'TVGS Trưởng Trần Đình Trọng',
+          result: 'PASSED_WITH_CONDITIONS',
+          notes: 'Kiểm tra 100% chứng chỉ xuất xưởng CO/CQ và kết quả siêu âm đường hàn góc cánh kèo. Yêu cầu dặm sơn lót epoxy tại vị trí móc cáp cẩu.',
+          attachedPhotosCount: 8
+        }
+      ];
+    },
+
+  getConcreteTests: async (projectId: number): Promise<ConcreteTestSample[]> => {
+    try {
+      const response = await apiClient.get<ConcreteTestSample[]>(`/qaqc/concrete-tests?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          projectId,
+          sampleCode: 'BT-M300-R28-091',
+          pourDate: '2026-09-22',
+          batchPlantName: 'Trạm trộn Bê tông Lê Phan VSIP',
+          designedGrade: 'B22.5 (M300)',
+          slumpMm: 120,
+          strengthR7Mpa: 24.8,
+          strengthR28Mpa: 33.4,
+          requiredStrengthMpa: 30.0,
+          passPercentage: 111.3,
+          status: 'PASSED'
+        },
+        {
+          id: 2,
+          projectId,
+          sampleCode: 'BT-M350-R28-092',
+          pourDate: '2026-09-28',
+          batchPlantName: 'Trạm trộn Bê tông Fico Tây Ninh',
+          designedGrade: 'B25 (M350)',
+          slumpMm: 135,
+          strengthR7Mpa: 28.5,
+          strengthR28Mpa: 38.6,
+          requiredStrengthMpa: 35.0,
+          passPercentage: 110.2,
+          status: 'PASSED'
+        },
+        {
+          id: 3,
+          projectId,
+          sampleCode: 'BT-M400-R7-105',
+          pourDate: '2026-10-14',
+          batchPlantName: 'Trạm trộn Bê tông Lê Phan VSIP',
+          designedGrade: 'B30 (M400)',
+          slumpMm: 140,
+          strengthR7Mpa: 32.1,
+          strengthR28Mpa: 0,
+          requiredStrengthMpa: 40.0,
+          passPercentage: 80.25,
+          status: 'TESTING'
+        }
+      ];
+    },
+
+  getNCRs: async (projectId: number): Promise<NCRReport[]> => {
+    try {
+      const response = await apiClient.get<NCRReport[]>(`/qaqc/ncrs?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          ncrNumber: 'NCR-ADB-2026-003',
+          projectId,
+          title: 'Rỗ tổ ong bề mặt cổ cột C3 trục 4-B sau khi tháo dỡ ván khuôn',
+          severity: 'MINOR',
+          issuedBy: 'TVGS Trưởng Trần Đình Trọng',
+          issuedTo: 'Đội Thi công Bê tông Móng số 1',
+          issueDate: '2026-10-15',
+          rootCause: 'Đầm dùi chưa kỹ tại góc hẹp vị trí thép dầy mật độ cao.',
+          correctiveAction: 'Đục tẩy lớp bê tông xốp, quét phụ gia kết nối Sika Monotop R và trám vữa Sika Grout 214-11 cường độ cao.',
+          deadline: '2026-10-18',
+          status: 'VERIFIED_CLOSED'
+        },
+        {
+          id: 2,
+          ncrNumber: 'NCR-ADB-2026-004',
+          projectId,
+          title: 'Lớp mạ kẽm xà gồ Z200 bị trầy xước quá 50mm trong quá trình bốc dỡ',
+          severity: 'MINOR',
+          issuedBy: 'Kỹ sư Vũ Minh Trí (ADB QA/QC)',
+          issuedTo: 'Đơn vị Vận chuyển & Kho bãi Tân Cảng',
+          issueDate: '2026-10-19',
+          rootCause: 'Xếp dỡ cọ xát cơ học bằng xích cáp không bọc đệm cao su bảo vệ.',
+          correctiveAction: 'Sơn dặm phục hồi bề mặt bằng hợp chất giàu kẽm nguội Zinc Guard theo tiêu chuẩn ASTM A780.',
+          deadline: '2026-10-22',
+          status: 'IN_PROGRESS'
+        }
+      ];
+    }
+  }
+};
+
+export const hseApi = {
+  getPermits: async (projectId: number): Promise<PermitToWork[]> => {
+    try {
+      const response = await apiClient.get<PermitToWork[]>(`/hse/permits?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          ptwNumber: 'PTW-2026-HW-051',
+          projectId,
+          permitType: 'HOT_WORK',
+          location: 'Khu vực cụm vì kèo nhà xưởng trục 3-5',
+          issuerName: 'Lê Hoàng Long (Cán bộ An toàn HSE ADB)',
+          receiverName: 'Nguyễn Thành Nam (Tổ trưởng Hàn WinSteel)',
+          subcontractorName: 'Công ty Cổ phần Thép WinSteel',
+          validFrom: '2026-10-20 07:30',
+          validTo: '2026-10-20 17:30',
+          gasCheckCompleted: true,
+          fireExtinguisherPresent: true,
+          fullHarnessCertified: true,
+          status: 'ACTIVE'
+        },
+        {
+          id: 2,
+          ptwNumber: 'PTW-2026-HL-052',
+          projectId,
+          permitType: 'HEAVY_LIFTING',
+          location: 'Khu vực cẩu lắp dầm cầu trục 20 tấn',
+          issuerName: 'Lê Hoàng Long (Cán bộ An toàn HSE ADB)',
+          receiverName: 'Vũ Đức Thắng (Lái cẩu Hitachi 50T)',
+          subcontractorName: 'Đội Thiết bị Xe máy ADB Nội bộ',
+          validFrom: '2026-10-20 08:00',
+          validTo: '2026-10-20 12:00',
+          gasCheckCompleted: true,
+          fireExtinguisherPresent: true,
+          fullHarnessCertified: true,
+          status: 'APPROVED'
+        },
+        {
+          id: 3,
+          ptwNumber: 'PTW-2026-WH-048',
+          projectId,
+          permitType: 'WORKING_AT_HEIGHT',
+          location: 'Lắp dựng giàn giáo hoàn thiện mặt ngoài trục A',
+          issuerName: 'Lê Hoàng Long',
+          receiverName: 'Đặng Quốc Huy (Giám sát An toàn Thầu phụ)',
+          subcontractorName: 'Công ty TNHH Xây dựng Hưng Thịnh Phát',
+          validFrom: '2026-10-19 07:30',
+          validTo: '2026-10-19 17:30',
+          gasCheckCompleted: false,
+          fireExtinguisherPresent: true,
+          fullHarnessCertified: true,
+          status: 'CLOSED'
+        }
+      ];
+    },
+
+  getIncidents: async (projectId: number): Promise<SafetyIncident[]> => {
+    try {
+      const response = await apiClient.get<SafetyIncident[]>(`/hse/incidents?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          incidentCode: 'INC-2026-NM-005',
+          projectId,
+          type: 'NEAR_MISS',
+          incidentDate: '2026-10-17 14:15',
+          location: 'Khu tập kết cấu kiện thép phía Đông',
+          description: 'Cáp treo phụ của xe nâng bị tuột móc chốt an toàn khi hạ palet phụ kiện bulong neo, không gây thương tích hay hỏng hóc.',
+          lostDays: 0,
+          remedialAction: 'Thay thế lập tức chốt lưỡi gà an toàn cho 100% móc cẩu trên công trường, nhắc nhở trong buổi họp giao ban HSE.',
+          status: 'CLOSED'
+        }
+      ];
+    },
+
+  getToolboxMeetings: async (projectId: number): Promise<ToolboxMeeting[]> => {
+    try {
+      const response = await apiClient.get<ToolboxMeeting[]>(`/hse/toolbox?projectId=${projectId}`);
+      return response.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          projectId,
+          meetingDate: '2026-10-20',
+          topic: 'Quy trình an toàn khi làm việc trên cao và kiểm tra đai an toàn 2 móc giảm chấn',
+          leader: 'Lê Hoàng Long (HSE Manager)',
+          attendeesCount: 118,
+          keyHazardsDiscussed: 'Nguy cơ ngã cao tại mép sàn biên chưa lắp lan can bảo vệ; quy định buộc dây cứu sinh (lifeline) bằng cáp thép mạ kẽm D10mm.'
+        },
+        {
+          id: 2,
+          projectId,
+          meetingDate: '2026-10-19',
+          topic: 'An toàn phòng cháy chữa cháy (PCCC) trong công tác hàn cắt kim loại',
+          leader: 'Nguyễn Văn Hùng (Chỉ huy trưởng)',
+          attendeesCount: 125,
+          keyHazardsDiscussed: 'Bạt chống cháy Spunlace cách ly khu vực hàn; trang bị tối thiểu 02 bình bột MFZ4 và 01 bình khí CO2 MT3 tại mỗi điểm hàn.'
+        }
+      ];
+    }
+  }
+};
+

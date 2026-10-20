@@ -193,3 +193,109 @@ export interface SteelComponent {
   erectedAt?: string;
   erectedBy?: string;
 }
+
+// ==========================================
+// 08. QA/QC QUALITY CONTROL (Nghị định 06/2021/NĐ-CP)
+// ==========================================
+export interface QAQCInspection {
+  id: number;
+  projectId: number;
+  inspectionCode: string;
+  wbsCode: string;
+  workCategory: string;
+  inspectionType: 'STAGE' | 'MATERIAL_INCOMING' | 'CONCEALED_WORK' | 'HANDOVER';
+  standardReference: string;
+  inspectionDate: string;
+  inspectorADB: string;
+  supervisionConsultant: string;
+  result: 'PASSED' | 'PASSED_WITH_CONDITIONS' | 'FAILED';
+  notes: string;
+  attachedPhotosCount: number;
+}
+
+export interface ConcreteTestSample {
+  id: number;
+  projectId: number;
+  sampleCode: string;
+  pourDate: string;
+  batchPlantName: string;
+  designedGrade: string;
+  slumpMm: number;
+  strengthR7Mpa: number;
+  strengthR28Mpa: number;
+  requiredStrengthMpa: number;
+  passPercentage: number;
+  status: 'TESTING' | 'PASSED' | 'FAILED';
+}
+
+export interface WeldNDTReport {
+  id: number;
+  projectId: number;
+  weldJointId: string;
+  method: 'UT' | 'MT' | 'RT' | 'VT';
+  acceptanceStandard: string;
+  testedBy: string;
+  defectDetected: boolean;
+  defectType?: string;
+  status: 'ACCEPTED' | 'REJECTED' | 'REPAIRED_AND_PASSED';
+}
+
+export interface NCRReport {
+  id: number;
+  ncrNumber: string;
+  projectId: number;
+  title: string;
+  severity: 'MINOR' | 'MAJOR' | 'CRITICAL';
+  issuedBy: string;
+  issuedTo: string;
+  issueDate: string;
+  rootCause: string;
+  correctiveAction: string;
+  deadline: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'VERIFIED_CLOSED';
+}
+
+// ==========================================
+// 09. HSE SITE SAFETY & PERMIT TO WORK (PTW)
+// ==========================================
+export interface PermitToWork {
+  id: number;
+  ptwNumber: string;
+  projectId: number;
+  permitType: 'HOT_WORK' | 'WORKING_AT_HEIGHT' | 'CONFINED_SPACE' | 'HEAVY_LIFTING' | 'EXCAVATION';
+  location: string;
+  issuerName: string;
+  receiverName: string;
+  subcontractorName: string;
+  validFrom: string;
+  validTo: string;
+  gasCheckCompleted: boolean;
+  fireExtinguisherPresent: boolean;
+  fullHarnessCertified: boolean;
+  status: 'REQUESTED' | 'APPROVED' | 'ACTIVE' | 'EXPIRED' | 'CLOSED';
+}
+
+export interface SafetyIncident {
+  id: number;
+  incidentCode: string;
+  projectId: number;
+  type: 'NEAR_MISS' | 'FIRST_AID' | 'MEDICAL_TREATMENT' | 'LOST_TIME';
+  incidentDate: string;
+  location: string;
+  description: string;
+  injuredPersonName?: string;
+  lostDays: number;
+  remedialAction: string;
+  status: 'INVESTIGATING' | 'ACTION_PENDING' | 'CLOSED';
+}
+
+export interface ToolboxMeeting {
+  id: number;
+  projectId: number;
+  meetingDate: string;
+  topic: string;
+  leader: string;
+  attendeesCount: number;
+  keyHazardsDiscussed: string;
+}
+

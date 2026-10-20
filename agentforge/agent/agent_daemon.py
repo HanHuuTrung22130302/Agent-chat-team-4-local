@@ -148,11 +148,29 @@ class AgentDaemon:
         # Notify progress: task accepted
         await self.send_progress(task_id, f"Accepted task: {title} via [{task_engine_name}:{task_model}]")
 
+        system_skill_instructions = ""
+        if self.role == "developer":
+            system_skill_instructions = """
+[UI/UX & Engineering Standards Activated]:
+1. Follow the Enterprise UI/UX Design System: Dark slate theme (bg-slate-950, bg-slate-900, border-slate-800), clean typography hierarchy (minimum text-xs / 12px), high information density.
+2. Build interactive components: KPI metric summary cards, searchable/filterable data tables, modal dialogs for CRUD actions, slide-over detail drawers, status badges.
+3. Modular code: Place components in frontend/src/components/ and maintain clean separation of concerns.
+4. Robust backend: Spring Boot 3 + PostgreSQL with complete DDL migrations, input validation, and proper HTTP status codes.
+"""
+        elif self.role == "ba":
+            system_skill_instructions = """
+[BA Specification Standards Activated]:
+1. Structure specs according to docs/ai/templates/SPEC.md.
+2. Include concrete User Stories (As a... I want... So that...).
+3. Specify exact PostgreSQL DDL with column types, constraints, and default values.
+4. Detail REST API request/response JSON schemas, error codes, and business invariants (FIDIC, Circular 12/2021/TT-BXD, Decree 06/2021/NĐ-CP).
+"""
+
         prompt = f"""You are the {self.role.upper()} agent for the Ánh Dương Building ERP project.
 Task ID: {task_id}
 Title: {title}
 Requirements / Context: {description}
-
+{system_skill_instructions}
 Please analyze the requirements and complete the assigned task. Output clear, production-ready deliverables.
 """
         try:
