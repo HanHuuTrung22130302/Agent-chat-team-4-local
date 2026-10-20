@@ -7,11 +7,11 @@
 | Field | Value |
 |---|---|
 | Phase | **Continuous Autonomous Evolution Loop (Active - Assembly Line)** |
-| Scope | Full 12-Module Enterprise D&B ERP (Ánh Dương Building) |
-| Architecture | Java 21 + Spring Boot 3 + PostgreSQL + React 18 TS |
+| Scope | Full 12-Module Enterprise D&B ERP (Ánh Dương Building) — Modular Architecture |
+| Architecture | Java 21 + Spring Boot 3 + PostgreSQL + React 18 TS + Enterprise UI/UX Design System |
 | Repositories | `Erp-ADB-Building.git` (Full product + tool + docs) & `Agent-chat-team-4-local.git` (Platform) |
 | Live Public URL | `https://resolved-commander-price-reduces.trycloudflare.com` |
-| Last updated | 2026-10-20 |
+| Last updated | 2026-10-21 |
 
 ---
 
@@ -20,27 +20,37 @@
 ### ✅ Completed Modules & Architecture
 
 1. **Enterprise Architecture Roadmap**: `docs/plans/ENTERPRISE_ARCHITECTURE_ROADMAP.md` covering all 12 modules for Ánh Dương Building D&B EPC.
-2. **Module 01: Project Management & WBS**: Core Entity, DDL V1, REST API, WBS 4-level hierarchy.
-3. **Module 02: Digital Site Diary**: Daily logs, weather, manpower, safety notes (Nghị định 06/2021/NĐ-CP).
-4. **Module 03: BOQ Estimating & EVM Analysis**: Earned Value Management (BAC, PV, EV, AC, CPI, SPI, EAC), unit rates, and `JobCostingEVMTest.java`.
-5. **Module 04: Subcontractor & FIDIC PPC**: Advance payments, 5% retention, backcharges, VAT 8%, and `SubcontractorServiceTest.java`.
-6. **Module 05: Material Procurement & Warehouse**:
-   - Spec: `SPEC-05-MATERIALS-WAREHOUSE.md`
-   - Flyway: `V3__inventory_and_procurement.sql`
-   - Backend: `com.anhduongbuilding.erp.inventory` (MR, PO, GRN, GIN, Stock balances)
-   - Tests: `MaterialNormReconciliationTest.java` (Circular 12/2021 norm reconciliations: Steel <= 2.5%, Concrete <= 1.5%, Aggregates <= 3.0%).
-7. **Module 06: Heavy Equipment & Machinery Fleet**:
-   - Spec: `SPEC-06-EQUIPMENT-FLEET.md`
-   - Flyway: `V4__equipment_and_fleet.sql`
-   - Backend: `com.anhduongbuilding.erp.equipment` (Equipments, Mobilization orders, Engine hour logs, Diesel norm)
-   - Tests: `EquipmentFuelNormTest.java` (Circular 12/2021 diesel consumption variance > 5% / > 15%, safety inspection expiry alert <= 30 days).
-8. **Module 07: WinSteel Pre-Engineered Steel Factory**:
-   - Spec: `SPEC-07-WINSTEEL-FACTORY.md`
-   - Flyway: `V5__winsteel_factory.sql`
-   - Backend: `com.anhduongbuilding.erp.winsteel` (BOM components, 5-stage shopline, Nesting plan scrap < 3%, QR site erection)
-   - Tests: `WinSteelNestingTest.java` (Nesting optimization approval, scrap rate threshold, QR site erection).
-9. **React 18 TypeScript Frontend**:
-   - Full 8-tab interactive navigation in `App.tsx` (Projects, WBS, Diary, BOQ & EVM, Subcontractors & FIDIC PPC, Inventory & Warehouse, Equipment Fleet, WinSteel Factory).
+2. **Enterprise UI/UX Design System Skill**:
+   - `skills/enterprise-ui-ux-design-system/SKILL.md` & `.opencode/skills/enterprise-ui-ux/SKILL.md`
+   - Dark slate palette (`bg-slate-950`, `bg-slate-900`, `border-slate-800`), typography floors (>= 12px / `text-xs`), balanced status tokens, KPI summary cards, click-to-inspect drawers, quick action modals.
+3. **Module 01: Project Management & WBS**:
+   - Project Portfolio Dashboard (`ProjectDashboard.tsx`) with search, status filters, milestone tracking, and "+ Thao tác Mới" modal.
+   - WBS Explorer (`WBSExplorer.tsx`) with hierarchical breakdown, weight allocation, and interactive progress slider.
+4. **Module 02: Digital Site Diary**:
+   - `SiteDiaryModule.tsx` with daily logs, morning/afternoon weather, direct vs subcontractor manpower count, HSE notes, and dual digital signatures (Chỉ huy trưởng & TVGS).
+5. **Module 03: BOQ Estimating & EVM Analysis**:
+   - `BOQEVMModule.tsx` with EVM cockpit (BAC, PV, EV, AC, CPI, SPI, EAC), interactive What-If cost delta slider, and Circular 12/2021 norm unit rate mapping.
+6. **Module 04: Subcontractor & FIDIC PPC**:
+   - `SubcontractorPPCModule.tsx` with subcontracts directory, FIDIC PPC payment certificate table ($\text{Gross} - \text{Advance} - \text{Retention 5\%} - \text{Backcharges} + \text{VAT 8\%}$), and live "Duyệt PPC" approval action.
+7. **Module 05: Material Procurement & Warehouse**:
+   - `MaterialWarehouseModule.tsx` with stock balances, low-stock indicators, and Circular 12/2021/TT-BXD norm reconciliation calculator (Steel $> 2.5\%$, Concrete $> 1.5\%$, Aggregates $> 3.0\%$).
+8. **Module 06: Heavy Equipment & Machinery Fleet**:
+   - `EquipmentFleetModule.tsx` with fleet inventory, engine hours, interactive diesel variance calculator with `OVER_CONSUMPTION` ($> 5\%$) and `CRITICAL` ($> 15\%$) alerts, safety inspection expiry countdown.
+9. **Module 07: WinSteel Pre-Engineered Steel Factory**:
+   - `WinSteelFactoryModule.tsx` with 5-stage fabrication line tracker, Nesting cut scrap calculator (rejects if scrap $> 3\%$), interactive QR Code site erection simulator updating status to `ERECTED` in real time.
+10. **Module 08: QA/QC Quality Inspection (Nghị định 06/2021/NĐ-CP)**:
+    - `QAQCModule.tsx` with 3 sub-views: RFI Inspection Checklists, Concrete Compressive Strength test log (R7/R28 MPa with TCVN 9340:2012 evaluation), and NCR defect report lifecycle with severity tokens.
+11. **Module 09: HSE Site Safety & Permit To Work (PTW)**:
+    - `HSEModule.tsx` with Permit To Work active permits (Hot Work, Working at Heights, Heavy Lifting), Near-miss incident tracking with 0 LTI safety milestone, and Toolbox meeting logs.
+12. **Production Docker Deployment & Cloudflare Tunnel**:
+    - Backend: `erp-adb-backend` (port 8085)
+    - Frontend: `erp-adb-frontend` (port 3000)
+    - Tunnel: `https://resolved-commander-price-reduces.trycloudflare.com` (verified HTTP 200)
+13. **Model Diversity Across Multi-PC Cluster**:
+    - Lead (`lead-hantpc`): Gemini 3.8 Flash High
+    - BA (`ba-hant_lap`): MiniMax M3.1 Flash Free
+    - Dev (`developer-desktop-cgqq2oo`): Mimo v2.6 Flash Free
+    - Tester (`tester-desktop-khkher1`): GLM 5.3 Flash Free
 10. **Platform Autonomous Assembly Line**:
    - Continuous task scheduler in `agentforge/hub/app.py`: Automatically auto-dispatches pending queue tasks as soon as matching agents become idle.
    - All 4 physical nodes concurrently integrated and cooperating in real-time.
