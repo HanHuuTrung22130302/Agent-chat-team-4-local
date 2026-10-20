@@ -97,3 +97,12 @@ All agents connect to the Hub via **WebSocket** (see [DECISIONS.md — D001](doc
 - **Daily sync**: Agents report status via Hub (or SESSION.md if async)
 - **Sprint review**: Lead summarizes completed work, updates CURRENT_STATE.md
 - **Backlog**: Maintained in TASKS.md files per epic
+
+## New Project Initiation Workflow
+
+When a human user initiates a brand-new project idea via the Web Dashboard:
+1. **Reset Context**: Lead executes the Reset Protocol in [CONSTITUTION.md](CONSTITUTION.md) (archives previous project files, refreshes `PROJECT.md` & `CURRENT_STATE.md`).
+2. **Context Ingestion**: Lead reads user directives and `docs/ai/PROJECT.md` to establish architectural boundaries.
+3. **Decompose & Plan**: Lead generates initial Sprint 1 tasks using [PLAN template](docs/ai/templates/PLAN.md).
+4. **Delegate to BA**: Lead creates the first task on the Hub assigning the BA Agent to formulate detailed functional specifications ([SPEC template](docs/ai/templates/SPEC.md)).
+5. **Execution Loop**: The development squad proceeds through the standard lifecycle (Spec → Plan → Code → Test → Deploy).

@@ -62,3 +62,19 @@ docs/
 - **Never fabricate**: Do not invent project state, metrics, or technical facts
 - **Ask when uncertain**: If requirements are ambiguous, ask the Lead (or human) before implementing
 - **Atomic commits**: Each commit should be a single logical change that passes all tests
+
+## Project Lifecycle & Reset Protocol
+
+When a human user initiates a **NEW project idea**:
+- **Lead Agent Authority**: The Lead Agent is responsible for resetting project-specific context so agents never mix old and new project requirements.
+- **Archiving Old Data**: Move active specifications (`docs/specs/`), plans (`docs/plans/`), and test logs (`docs/tests/`) to `docs/archive/<old_project_name>/`.
+- **Files to Reset**:
+  - `docs/ai/PROJECT.md`: Overwrite with new project goals, company background, and modules.
+  - `docs/ai/CURRENT_STATE.md`: Reset to Phase 0 (Planning & Framework Setup).
+  - `docs/ai/SESSION.md`: Reset to Session 1 with the new project kickoff log.
+- **Protected Core Files (NEVER delete)**:
+  - `AGENTS.md`, `CONSTITUTION.md`, `MASTER.md`
+  - `docs/ai/templates/*` (SPEC.md, PLAN.md, TASKS.md)
+  - `docs/ai/adapters/*` (ANTIGRAVITY.md, OPENCODE.md, GEMINI_API.md)
+  - `agentforge/*` (Core orchestrator and agent daemon code)
+- **Zero-Pollution Invariant**: The active context window must strictly reflect ONLY the current project to prevent hallucinations and wasted tokens.
