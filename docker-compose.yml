@@ -7,11 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: erp-adb-backend
     ports:
-      - "8080:8080"
+      - "8085:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://192.168.1.50:5432/adb_erp
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/adb_erp
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1
+    networks:
+      - databases_default
     restart: unless-stopped
 
   frontend:
@@ -21,6 +23,22 @@ services:
     container_name: erp-adb-frontend
     ports:
       - "3000:80"
+    networks:
+      - databases_default
     depends_on:
       - backend
     restart: unless-stopped
+
+  cf-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cf-tunnel-erpadb
+    restart: always
+    command: ["tunnel", "--no-autoupdate", "--url", "http://erp-adb-frontend:80"]
+    networks:
+      - databases_default
+    depends_on:
+      - frontend
+
+networks:
+  databases_default:
+    external: true

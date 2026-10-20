@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Building2, 
   FolderKanban, 
   FileSpreadsheet, 
   Users, 
@@ -9,18 +8,12 @@ import {
   Factory, 
   Clock, 
   DollarSign, 
-  ShieldCheck, 
-  BarChart3,
-  ChevronRight,
-  Sun,
-  CloudRain,
   CheckCircle2,
-  AlertTriangle,
   Calendar,
   Layers,
   MapPin,
-  FileCheck2,
-  Receipt
+  Receipt,
+  Award
 } from 'lucide-react';
 import { Project, WBSItem, DailySiteDiary, Subcontractor, Subcontract, PaymentCertificate } from './types';
 import { projectApi, subcontractorApi } from './services/api';
@@ -194,6 +187,11 @@ export default function App() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {loading && (
+              <span className="text-xs text-sky-400 flex items-center gap-1.5 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-sky-400"></span> Đang tải dữ liệu...
+              </span>
+            )}
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-950 text-sky-400 border border-sky-800">
               Tổng thầu D&B Hạng I
             </span>
@@ -378,6 +376,27 @@ export default function App() {
                     <span>Quản lý Thầu phụ, Hợp đồng Giao khoán & Nghiệm thu Thanh toán PPC theo FIDIC</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-1">Đánh giá hồ sơ năng lực, hợp đồng theo đơn giá và chứng chỉ thanh toán kỳ (PPC)</p>
+                </div>
+              </div>
+
+              {/* SUBCONTRACTOR DIRECTORY */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <Award className="w-4 h-4 text-sky-400" />
+                  <span>Danh bạ & Xếp hạng Năng lực Nhà thầu phụ</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {subcontractors.map((sub) => (
+                    <div key={sub.id} className="p-3 rounded-lg bg-slate-950/60 border border-slate-800 space-y-1.5 text-xs">
+                      <div className="flex justify-between items-start">
+                        <span className="font-mono text-[10px] text-teal-400 font-semibold">{sub.code}</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Hạng {sub.ratingGrade}</span>
+                      </div>
+                      <div className="font-semibold text-slate-200 line-clamp-1">{sub.name}</div>
+                      <div className="text-[11px] text-slate-400">{sub.specialty}</div>
+                      <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-800/80">MST: {sub.taxCode}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

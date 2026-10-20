@@ -27,6 +27,13 @@
 - [x] Project Management & WBS Spec written (`docs/specs/SPEC-02-PROJECTS-WBS.md`)
 - [x] BOQ Estimating & Job Costing Spec written (`docs/specs/SPEC-03-BOQ-COSTING.md`)
 - [x] **Module 04: Subcontractors & FIDIC PPC** written (`docs/specs/SPEC-04-SUBCONTRACTORS.md`)
+- [x] **Module 05: Materials & Site Warehouse** written (`docs/specs/SPEC-05-MATERIALS-WAREHOUSE.md`)
+- [x] **Module 03: BOQ Estimating & EVM Analysis** implemented in Spring Boot 3 (`com.anhduongbuilding.erp.boq`)
+- [x] **Live Production Deployment via Docker & Cloudflare Tunnel**:
+  - `erp-adb-backend`: Spring Boot 3.3.4 running on port `8085` connected to PostgreSQL `adb_erp`
+  - `erp-adb-frontend`: React 18 TS + Vite + Nginx running on port `3000`
+  - `cf-tunnel-erpadb`: Cloudflare Tunnel live at `https://resolved-commander-price-reduces.trycloudflare.com`
+- [x] **Concurrent Multi-Agent Execution**: Successfully dispatched and executed concurrent tasks across BA (`ba-hant_lap`), Developer (`developer-desktop-cgqq2oo`), and Tester (`tester-desktop-khkher1`).
 - [x] **Backend Implementation (Java 21 + Spring Boot 3)**:
   - Flyway DDL `V1__init_schema.sql` (Core IAM, Project Management, BOQ)
   - Flyway DDL `V2__subcontractor_and_ppc.sql` (Subcontractors, Subcontracts, Payment Certificates, Backcharges)

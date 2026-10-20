@@ -27,7 +27,14 @@
      - Thêm scroll view độc lập (`h-[560px]`, `overflow-y-auto`, `custom-scrollbar`) cho từng cột Kanban (Backlog, In Progress, Review, Completed), chấm dứt hiện tượng kéo dài toàn màn hình.
      - Xây dựng pop-up modal Task Detail & Logs: Cho phép click vào bất kỳ thẻ task nào trên Task Board để xem toàn bộ thông tin chi tiết, prompt yêu cầu, và toàn bộ log thực thi / output của AI engine.
      - Bổ sung nút Copy Context và Copy Full Log nhanh chóng.
-  8. Đồng bộ hóa toàn diện mã nguồn, công cụ và tài liệu lên cả hai kho lưu trữ:
+  8. Triển khai Hệ thống lên Docker trên Ubuntu Server (`192.168.1.50`) & Nối Cloudflare Tunnel:
+     - Tạo `docker-compose.yml` cho ERP ADB với 3 services: `erp-adb-backend` (port 8085), `erp-adb-frontend` (port 3000), và `cf-tunnel-erpadb`.
+     - Build thành công Maven Java 21 + Spring Boot 3.3.4 và React 18 TypeScript.
+     - Khởi chạy Cloudflare Quick Tunnel thành công, cung cấp đường link truy cập công khai: `https://resolved-commander-price-reduces.trycloudflare.com`.
+  9. Tối ưu hóa Thực thi Đồng thời Đa tác nhân (Concurrent Multi-Agent Execution):
+     - Đồng loạt dispatch 3 nhiệm vụ Giai đoạn 2: TASK-011 (BA), TASK-012 (Developer), TASK-013 (Tester).
+     - Hệ thống Hub phân phối đồng thời sang 3 máy trạm vật lý (`ba-hant_lap`, `developer-desktop-cgqq2oo`, `tester-desktop-khkher1`) cùng ở trạng thái BUSY và hoàn thành song song.
+  10. Đồng bộ hóa toàn diện mã nguồn, công cụ và tài liệu lên cả hai kho lưu trữ:
      - `Erp-ADB-Building.git`
      - `Agent-chat-team-4-local.git`
 
