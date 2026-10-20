@@ -4,89 +4,55 @@
 
 ---
 
-## Latest Session
+## Latest Session — 2026-10-20
 
 | Field | Value |
 |-------|-------|
-| Date | 2025-01-20 |
-| Agent Role | Lead (setup) |
-| Model/IDE | Gemini / Antigravity |
-| Duration | ~1 session |
+| Date | 2026-10-20 |
+| Agent Role | Lead Architect & Platform Orchestrator |
+| Model/IDE | Gemini 3.8 Flash / Antigravity Pro Jio (Free Tier / Budget Protection active) |
+| Mode | Continuous Autonomous Evolution Loop |
 
 ### What Was Done
- 
- - Researched Ánh Dương Building (ADB) — Grade I General Contractor for industrial projects (D&B)
- - Analyzed and mapped 12 ERP modules specifically for ADB (BOQ estimating, job costing, subcontractor retainage, WIP accounting)
- - Created complete Cross-Model, Cross-IDE Agent Context Framework (17 files total):
-   - Core orchestration: `AGENTS.md`, `MASTER.md`, `CONSTITUTION.md`
-   - Project documentation: `docs/ai/PROJECT.md`, `docs/ai/CURRENT_STATE.md`, `docs/ai/SESSION.md`, `docs/ai/DECISIONS.md`
-   - Workflow templates: `docs/ai/templates/SPEC.md`, `PLAN.md`, `TASKS.md`
-   - IDE/Tool adapters: `docs/ai/adapters/ANTIGRAVITY.md`, `OPENCODE.md`, `GEMINI_API.md`
-   - Role System Prompts: `docs/ai/prompts/LEAD_PROMPT.md`, `BA_PROMPT.md`, `DEV_PROMPT.md`, `TESTER_PROMPT.md`
- - Verified LAN network reachability from PC-3 (`192.168.31.9`) to Server (`192.168.1.50`) and PC-1 (`192.168.1.3`)
- 
- ### Current Task in Progress
- 
- - None (Context Framework & Initial Architecture completed)
- 
- ### Uncommitted Changes
- 
- - Initial context framework files created in repository
- 
- ### Decisions Made This Session
- 
- - D001 to D007 ratified in [DECISIONS.md](DECISIONS.md)
- - Architecture uses Hub-and-Spoke outbound WebSocket connection (`ws://192.168.1.50:8000/ws`), which naturally traverses the Xiaomi router NAT without requiring immediate bridge configuration.
- 
- ### Questions / Blockers for Next Session
- 
- 1. PC-2 (`192.168.1.4`) ICMP ping timed out — verify if PC-2 is turned on or if Windows Firewall blocks ping
- 2. Need SSH credentials / port to inspect Docker and DB on Ubuntu Server (`192.168.1.50`)
 
-### Files Modified
+1. **Autonomous Evolution Mode Adopted**:
+   - Switched from single-sprint limitation to a Continuous Autonomous Evolution Loop.
+   - Master Roadmap formulated across all 12 modules for Ánh Dương Building (Grade I D&B General Contractor) in `docs/plans/MASTER_ROADMAP.md`.
 
-- All files are new (see [AGENTS.md](../../AGENTS.md) documentation map)
+2. **Enterprise Tech Stack & Repositories Established**:
+   - Product Codebase Repository: `https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git` (branch `main`).
+   - Scaffolding committed: Java 21 + Spring Boot 3.3.4 (Maven) + PostgreSQL + Flyway + SpringDoc Swagger + React 18 TypeScript Vite + Tailwind CSS.
+   - Database `adb_erp` created on PostgreSQL server `192.168.1.50:5432`.
+   - Tool Repository: `https://github.com/HanHuuTrung22130302/Agent-chat-team-4-local.git` (all tools, engines, and docs synced).
 
-### Next Recommended Action
+3. **Cluster Infrastructure & Engine Robustness**:
+   - All 4 physical machines verified connected to Hub (`http://192.168.1.50:8000`):
+     - Lead: `lead-hantpc` (HanTPc)
+     - BA: `ba-hant_lap` (HanT_Lap)
+     - Developer: `developer-desktop-cgqq2oo` (192.168.1.3)
+     - Tester: `tester-desktop-khkher1` (192.168.1.4)
+   - Fixed `engines.py` and `agent_daemon.py`:
+     - Added multi-path binary discovery for `agy.exe` and `opencode.cmd`.
+     - Added bidirectional auto-fallback (if OpenCode fails or hits quota/expired key -> auto-switches to Antigravity `gemini-3.8-flash-high`; if Antigravity hits error -> auto-switches to OpenCode).
+     - Added `task.failed` check on engine errors to prevent false completions.
+     - Auto `git pull` on worker startup.
 
-1. Fix Xiaomi CR8809 Bridge Mode (human task)
-2. Set up Docker on Ubuntu server
-3. Begin Hub MVP implementation — start with [SPEC template](templates/SPEC.md) for Hub
+4. **Product Documentation & Specifications**:
+   - `docs/specs/SPEC-01-CORE-IAM.md`: Multi-role RBAC, JWT, PostgreSQL schema, audit logs.
+   - `docs/specs/SPEC-02-PROJECTS-WBS.md`: Projects, 4-level WBS progress, electronic site diary (NĐ 06/2021/NĐ-CP).
+   - `docs/specs/SPEC-03-BOQ-COSTING.md`: BOQ estimating, Vietnamese norms (Thông tư 12/2021/TT-BXD), EVM job costing.
 
----
+### Current Tasks in Progress
 
-## Session Template
-
-_Copy this block for each new session entry. Move previous session below._
-
-```markdown
-## Session — [DATE]
-
-| Field | Value |
-|-------|-------|
-| Date | YYYY-MM-DD |
-| Agent Role | Lead / BA / Developer / Tester |
-| Model/IDE | Model name / IDE name |
-| Duration | approx |
-
-### What Was Done
-- ...
-
-### Current Task in Progress
-- Task ID + description (or "None")
-
-### Uncommitted Changes
-- Description of uncommitted work (or "None")
+- `TASK-002`: [TIEN HOA TU CHU - DOT 2] Specifying Modules 04 (Subcontractors), 05 (Materials), and 07 (WinSteel).
 
 ### Decisions Made
-- ...
 
-### Blockers
-- ...
+- [D008](DECISIONS.md): Strict cost protection — automated runs use FREE models only (`gemini-3.8-flash-high`, `deepseek-v4.1-flash-free`).
+- [D009](DECISIONS.md): Standardized on Java 21 + Spring Boot 3 + PostgreSQL for ERP product backend.
+- Autonomous Evolution Protocol: Team continues self-directed development until all 12 modules and legal/industry standards are fully implemented.
 
 ### Files Modified
-- ...
 
-### Next Action
-- ...
-```
+- Tool Repo: `CONSTITUTION.md`, `agentforge/agent/engines.py`, `agentforge/agent/agent_daemon.py`, `agentforge/agent/run_agent.bat`, `docs/plans/MASTER_ROADMAP.md`, `docs/specs/SPEC-01-CORE-IAM.md`, `docs/specs/SPEC-02-PROJECTS-WBS.md`, `docs/specs/SPEC-03-BOQ-COSTING.md`, `docs/ai/CURRENT_STATE.md`, `docs/ai/SESSION.md`.
+- Product Repo (`Erp-ADB-Building`): Scaffolding for backend (Spring Boot 3) and frontend (React 18 TS).
