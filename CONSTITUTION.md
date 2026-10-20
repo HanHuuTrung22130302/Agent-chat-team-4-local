@@ -31,20 +31,36 @@
 ## File Structure Conventions
 
 ```
-src/
-  hub/           # Central orchestrator (WebSocket server)
-  agents/        # Agent daemon code
-  erp/           # ERP application modules
-    api/         # FastAPI routes
-    models/      # SQLAlchemy models
-    services/    # Business logic
-    schemas/     # Pydantic schemas
-tests/
-  unit/
-  integration/
-docs/
-  ai/            # AI agent context (this framework)
-  api/           # API documentation
+Platform Repository (https://github.com/HanHuuTrung22130302/Agent-chat-team-4-local.git):
+  agentforge/
+    hub/           # Central orchestrator (FastAPI WebSocket server)
+    agent/         # Distributed Agent Daemons (PC-1..4)
+    deploy/        # Docker Compose deployment for Ubuntu Server
+  docs/
+    ai/            # Context framework, decisions, prompts, templates
+    plans/         # Lead architectural plans & Master Roadmap
+    specs/         # BA functional specifications & DB schemas
+
+Product Repository (https://github.com/HanHuuTrung22130302/Erp-ADB-Building.git):
+  backend/         # Java 21 + Spring Boot 3.3.x (Maven)
+    src/main/java/com/anhduongbuilding/erp/
+      core/        # IAM, Security, Config, Common Exceptions
+      project/     # Project Management, WBS, Site Diary
+      costing/     # BOQ, Job Costing, EVM
+      subcontract/ # Subcontractor Management, PPC
+      inventory/   # Materials & Warehouse
+      winsteel/    # Steel Factory Manufacturing
+      workforce/   # HR, GPS Attendance, Payroll
+      accounting/  # Construction WIP, General Ledger
+    src/main/resources/
+      application.yml
+      db/migration/ # Flyway SQL migrations
+  frontend/        # React 18 + TypeScript + Vite + Tailwind CSS
+    src/
+      components/  # Layout, Header, Sidebar, Charts
+      pages/       # Module views (Dashboard, Projects, BOQ, etc.)
+      services/    # Axios API client
+      types/       # TypeScript interfaces
 ```
 
 ## Communication Protocol

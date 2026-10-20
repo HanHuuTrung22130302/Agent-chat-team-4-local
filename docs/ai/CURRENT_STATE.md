@@ -6,32 +6,45 @@
 
 | Field | Value |
 |-------|-------|
-| Phase | **Phase 0 — Planning & Framework Setup** |
-| Sprint | Pre-sprint (infrastructure) |
-| Last updated | 2025-01-20 |
+| Phase | **Continuous Autonomous Evolution Loop (Active)** |
+| Scope | Full 12-Module Enterprise D&B ERP (Ánh Dương Building) |
+| Architecture | Java 21 + Spring Boot 3 + PostgreSQL + React 18 TS |
+| Last updated | 2026-10-20 |
 
 ## Status Summary
 
 ### ✅ Completed
 
-- [x] Company research & requirements gathering (ADB profile, ERP needs)
-- [x] Blueprint document created (architecture, tech stack, module list)
-- [x] Key technical decisions made — see [DECISIONS.md](DECISIONS.md)
-- [x] Agent context framework created (AGENTS.md, MASTER.md, CONSTITUTION.md, templates, adapters)
-- [x] Role system prompts created for all 4 agents ([prompts/](prompts/))
-- [x] Network connectivity verified: PC-3 (`192.168.31.9`) reaches Server (`192.168.1.50`) and PC-1 (`192.168.1.3`) via LAN
+- [x] Company research & requirements gathering (ADB profile, Grade I D&B general contractor)
+- [x] Platform Hub & Real-time Web Dashboard deployed on Ubuntu Server (`http://192.168.1.50:8000`)
+- [x] Agent Daemons verified & online on all 4 physical machines (Lead, BA, Dev, Tester)
+- [x] Engine Auto-Fallback implemented (OpenCode failure automatically switches to Antigravity CLI)
+- [x] Strict budget protection locked (100% Free models: `gemini-3.8-flash-high`, `deepseek-v4.1-flash-free`)
+- [x] Platform repository synced (`https://github.com/HanHuuTrung22130302/Agent-chat-team-4-local.git`)
+- [x] Master Autonomous Roadmap established (`docs/plans/MASTER_ROADMAP.md`)
+- [x] Core IAM Spec written (`docs/specs/SPEC-01-CORE-IAM.md`)
+- [x] Project Management & WBS Spec written (`docs/specs/SPEC-02-PROJECTS-WBS.md`)
+- [x] BOQ Estimating & Job Costing Spec written (`docs/specs/SPEC-03-BOQ-COSTING.md`)
 
 ### 🔄 In Progress
 
-- [ ] Verify PC-2 (`192.168.1.4`) network/firewall status
-- [ ] Prepare Docker Compose & Hub MVP for Server (`192.168.1.50`)
+- [ ] Initialize product repository `Erp-ADB-Building` (Spring Boot 3 + React 18)
+- [ ] Create PostgreSQL database `adb_erp` on Ubuntu Server (`192.168.1.50:5432`)
+- [ ] Implement backend foundation (Spring Boot 3, Flyway migrations, JWT security, Project APIs)
+- [ ] Implement frontend foundation (React 18, Vite, Tailwind CSS, Layout, Dashboard)
+- [ ] Dispatch verification tasks to Tester Agent via Hub WebSocket
 
-### ⏳ Next Up
+### ⏳ Autonomous Evolution Pipeline
 
-1. **Server Setup**: SSH into `192.168.1.50` to inspect existing Docker & PostgreSQL/MariaDB services
-2. **Hub MVP**: Deploy FastAPI + WebSocket server on Server port 8000
-3. **Agent Daemon**: Package lightweight Python daemon for PC-1, PC-2, PC-3, PC-4
-4. **Dashboard MVP**: Deploy React dashboard on Server port 3000/8080
+1. **Cycle 1**: Core IAM & Project Management & Site Diary
+2. **Cycle 2**: BOQ Estimating, Vietnamese Norms (TT 12/2021) & Job Costing (EVM)
+3. **Cycle 3**: Subcontractor Management & Progress Payment Certificates (PPC)
+4. **Cycle 4**: Material Procurement & Site Warehouse Inventory
+5. **Cycle 5**: Machinery & Equipment Fleet Management
+6. **Cycle 6**: WinSteel Pre-Engineered Steel Factory Module
+7. **Cycle 7**: GPS Site Attendance & Vietnamese Labor Payroll
+8. **Cycle 8**: Construction WIP Accounting (TK 154) & Financial Reporting
+9. **Cycle 9**: Executive BI Cockpit & Risk Heatmap
 
 ## Network Topology & Connectivity
 
