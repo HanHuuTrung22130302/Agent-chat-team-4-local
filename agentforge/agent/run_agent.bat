@@ -8,13 +8,15 @@ echo ==========================================================
 echo.
 
 :: Auto-sync latest code and tools from repository
-echo [AgentForge] Checking for updates from repository...
+echo [AgentForge] Checking for updates from repository (git pull origin main)...
+pushd "%~dp0..\.."
 git pull origin main
 if errorlevel 1 (
     echo [AgentForge] Warning: Git pull encountered an issue. Continuing with local files...
 ) else (
     echo [AgentForge] Successfully synced latest tools and agent engines!
 )
+popd
 echo.
 
 :: Auto-check and install Python dependencies on first run
